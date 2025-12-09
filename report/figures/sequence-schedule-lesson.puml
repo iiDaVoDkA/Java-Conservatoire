@@ -1,0 +1,117 @@
+@startuml sequence-schedule-lesson
+
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+
+skinparam participant {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+    FontColor #1565C0
+}
+
+skinparam actor {
+    BackgroundColor #FFF3E0
+    BorderColor #E65100
+}
+
+title Diagramme de Séquence - Planification d'une Leçon
+
+actor User as "Utilisateur"
+participant "SchedulingService" as SS
+participant "DataRepository" as DR
+participant "Teacher" as T
+participant "Room" as R
+
+User -> SS : scheduleLesson(teacherId, studentIds,\n roomId, instrument, dateTime, duration)
+activate SS
+
+SS -> DR : getTeacher(teacherId)
+activate DR
+DR --> SS : teacher
+deactivate DR
+
+SS -> T : canTeach(instrument)
+activate T
+T --> SS : true
+deactivate T
+
+SS -> DR : getStudent(studentId)
+activate DR
+DR --> SS : student
+deactivate DR
+
+SS -> DR : getRoom(roomId)
+activate DR
+DR --> SS : room
+deactivate DR
+
+group Conflict Detection
+    SS -> SS : checkSchedulingConflicts()
+    
+    SS -> DR : getTeacherLessons(teacherId)
+    activate DR
+    DR --> SS : existingLessons
+    deactivate DR
+    
+    loop for each lesson
+        SS -> SS : tempSchedulable.conflictsWith(lesson)
+    end
+    
+    SS -> DR : getStudentLessons(studentId)
+    activate DR
+    DR --> SS : studentLessons
+    deactivate DR
+    
+    SS -> DR : getRoomActivities(roomId)
+    activate DR
+    DR --> SS : roomActivities
+    deactivate DR
+end
+
+alt No Conflicts
+    SS -> T : isAvailableAt(dateTime, duration)
+    activate T
+    T --> SS : true
+    deactivate T
+    
+    SS -> R : isAvailableAt(dateTime, duration)
+    activate R
+    R --> SS : true
+    deactivate R
+    
+    SS -> SS : create Lesson
+    
+    SS -> T : addBooking(timeSlot)
+    activate T
+    T --> SS : success
+    deactivate T
+    
+    SS -> R : addBooking(timeSlot)
+    activate R
+    R --> SS : success
+    deactivate R
+    
+    SS -> DR : addScheduledActivity(lesson)
+    activate DR
+    DR --> SS : saved
+    deactivate DR
+    
+    SS --> User : Lesson (success)
+else Conflicts Found
+    SS --> User : throw IllegalStateException\n("Scheduling conflicts detected")
+end
+
+deactivate SS
+
+note right of SS
+    <b>Business Rules Applied:</b>
+    1. Teacher must be able to teach the instrument
+    2. No time conflicts for teacher
+    3. No time conflicts for students
+    4. No time conflicts for room
+    5. Resources are booked upon success
+end note
+
+@enduml
+

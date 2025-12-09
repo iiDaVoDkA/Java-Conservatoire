@@ -1,0 +1,183 @@
+@startuml class-diagram-complete
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 11
+skinparam classAttributeFontSize 9
+skinparam classFontStyle bold
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+skinparam linetype ortho
+
+skinparam class {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+    ArrowColor #1565C0
+    HeaderBackgroundColor #1565C0
+    HeaderFontColor white
+}
+
+skinparam interface {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+}
+
+skinparam abstract {
+    BackgroundColor #FFF3E0
+    BorderColor #E65100
+}
+
+title Diagramme de Classes Complet - Conservatoire Virtuel
+
+' === INTERFACES ===
+interface Schedulable <<interface>> {
+    + getScheduledDateTime()
+    + getDuration()
+    + getStatus()
+    + conflictsWith()
+}
+
+interface Billable <<interface>> {
+    + calculateAmount()
+    + isPaid()
+    + markAsPaid()
+}
+
+interface Bookable <<interface>> {
+    + isAvailableAt()
+    + addBooking()
+    + removeBooking()
+}
+
+' === PERSON HIERARCHY ===
+abstract class Person {
+    # id: String
+    # firstName, lastName
+    # email, phone
+    --
+    + {abstract} getRole()
+    + {abstract} copy()
+}
+
+class Student {
+    - level: Level
+    - packageHours: Map
+    --
+    + consumeHours()
+}
+
+class Teacher {
+    - hourlyRate
+    - specializations
+    --
+    + canTeach()
+    + isAvailableAt()
+}
+
+' === SERVICE HIERARCHY ===
+abstract class Service {
+    # id, name, price
+    # studentId
+    --
+    + {abstract} isValid()
+    + calculateAmount()
+}
+
+class CoursePackage {
+    - totalHours
+    - usedHours
+    --
+    + useHours()
+}
+
+class IndividualLesson {
+    - instrument
+    - duration
+}
+
+class InstrumentRental {
+    - dailyRate
+    - deposit
+}
+
+' === SCHEDULING HIERARCHY ===
+abstract class ScheduledActivity {
+    # dateTime
+    # duration
+    # status
+    --
+    + {abstract} getActivityType()
+    + cancel()
+}
+
+class Lesson {
+    - teacherId
+    - studentIds
+    - instrument
+}
+
+class RoomBooking {
+    - studentId
+    - hourlyRate
+}
+
+' === RESOURCES ===
+class Room {
+    - name
+    - capacity
+    - equipment
+}
+
+class Instrument {
+    - type
+    - brand
+    - dailyRate
+}
+
+' === EXAM ===
+class Exam {
+    - name
+    - instrument
+    - maxCapacity
+    --
+    + registerStudent()
+    + recordResult()
+}
+
+' === BILLING ===
+class Invoice {
+    - items
+    - totalAmount
+    --
+    + addBillableItem()
+}
+
+class Payment {
+    - amount
+    - method
+    - status
+}
+
+' === RELATIONSHIPS ===
+Person <|-- Student
+Person <|-- Teacher
+Bookable <|.. Teacher
+
+Billable <|.. Service
+Service <|-- CoursePackage
+Service <|-- IndividualLesson
+Service <|-- InstrumentRental
+
+Schedulable <|.. ScheduledActivity
+ScheduledActivity <|-- Lesson
+ScheduledActivity <|-- RoomBooking
+
+Bookable <|.. Room
+Bookable <|.. Instrument
+
+Invoice ..> Billable : uses
+Lesson --> Teacher : taught by
+Lesson --> Student : has students
+Lesson --> Room : uses
+
+@enduml
+

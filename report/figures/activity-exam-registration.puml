@@ -1,0 +1,73 @@
+@startuml activity-exam-registration
+
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+
+skinparam activity {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+    FontColor #1565C0
+}
+
+skinparam diamond {
+    BackgroundColor #FFF3E0
+    BorderColor #E65100
+}
+
+title Diagramme d'Activité - Inscription à un Examen
+
+start
+
+:Sélectionner un Examen;
+
+if (Inscription ouverte ?) then (Oui)
+    if (Avant la date limite ?) then (Oui)
+        if (Places disponibles ?) then (Oui)
+            if (Étudiant déjà inscrit ?) then (Non)
+                :Créer ExamRegistration;
+                :Définir examId et studentId;
+                :Définir frais d'inscription;
+                :Définir statut = PENDING;
+                :Ajouter à la map des inscriptions;
+                
+                #palegreen:Retourner ExamRegistration;
+                note right
+                    Inscription réussie
+                    L'étudiant doit maintenant
+                    payer les frais
+                end note
+            else (Oui)
+                #pink:Erreur: Déjà inscrit;
+            endif
+        else (Non)
+            #pink:Erreur: Capacité maximale atteinte;
+            note right
+                maxCapacity atteint
+                registrations.size() >= maxCapacity
+            end note
+        endif
+    else (Non)
+        #pink:Erreur: Date limite dépassée;
+        note right
+            LocalDateTime.now() > registrationDeadline
+        end note
+    endif
+else (Non)
+    #pink:Erreur: Inscription fermée;
+    note right
+        registrationOpen == false
+    end note
+endif
+
+stop
+
+legend right
+    <b>Règles Métier</b>
+    |= Règle |= Description |
+    | Capacité | L'inscription ferme quand maxCapacity est atteint |
+    | Deadline | Une date limite de 7 jours avant l'examen par défaut |
+    | Unicité | Un étudiant ne peut s'inscrire qu'une seule fois |
+endlegend
+
+@enduml
+

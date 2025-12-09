@@ -1,0 +1,122 @@
+@startuml class-diagram-billing
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam classAttributeFontSize 12
+skinparam classFontStyle bold
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+
+skinparam class {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+    ArrowColor #1565C0
+    HeaderBackgroundColor #1565C0
+    HeaderFontColor white
+}
+
+skinparam interface {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+}
+
+title Diagramme de Classes - Facturation et Paiements
+
+interface Billable <<interface>> {
+    + getBillingId(): String
+    + getServiceType(): ServiceType
+    + calculateAmount(): BigDecimal
+    + getBillingDescription(): String
+    + isPaid(): boolean
+    + markAsPaid(): void
+}
+
+class Invoice {
+    - id: String
+    - studentId: String
+    - issueDate: LocalDateTime
+    - dueDate: LocalDate
+    - status: PaymentStatus
+    - items: List<InvoiceItem>
+    - subtotal: BigDecimal
+    - taxRate: BigDecimal
+    - taxAmount: BigDecimal
+    - totalAmount: BigDecimal
+    - paidAmount: BigDecimal
+    - notes: String
+    --
+    + Invoice(Invoice other)
+    + addBillableItem(billable): void
+    + addItem(item): void
+    + removeItem(itemId): boolean
+    + recordPayment(amount): void
+    + getOutstandingBalance(): BigDecimal
+    + isOverdue(): boolean
+    + getDetailedInfo(): String
+    + copy(): Invoice
+}
+
+class InvoiceItem {
+    - id: String
+    - referenceId: String
+    - description: String
+    - quantity: int
+    - unitPrice: BigDecimal
+    - total: BigDecimal
+    --
+    + InvoiceItem(InvoiceItem other)
+}
+
+class Payment {
+    - id: String
+    - studentId: String
+    - invoiceId: String
+    - amount: BigDecimal
+    - paymentDate: LocalDateTime
+    - paymentMethod: String
+    - status: PaymentStatus
+    - reference: String
+    - notes: String
+    --
+    + Payment(Payment other)
+    + process(): void
+    + refund(): void
+    + cancel(): void
+    + getDetailedInfo(): String
+    + copy(): Payment
+}
+
+enum PaymentStatus <<enumeration>> {
+    PENDING
+    PARTIAL
+    PAID
+    OVERDUE
+    REFUNDED
+    CANCELLED
+    --
+    + hasOutstandingBalance(): boolean
+}
+
+Invoice *-- InvoiceItem : contains
+Invoice --> PaymentStatus : has
+Payment --> PaymentStatus : has
+Invoice ..> Billable : uses
+
+note right of Invoice
+    <b>Polymorphic Billing</b>
+    addBillableItem() accepts any
+    object implementing Billable
+    (CoursePackage, IndividualLesson,
+    InstrumentRental, etc.)
+end note
+
+note bottom of Payment
+    Payment methods:
+    - Cash
+    - Card
+    - Transfer
+    - Check
+end note
+
+@enduml
+

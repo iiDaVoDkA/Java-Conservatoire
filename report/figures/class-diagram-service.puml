@@ -1,0 +1,144 @@
+@startuml class-diagram-service
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam classAttributeFontSize 12
+skinparam classFontStyle bold
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+
+skinparam class {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+    ArrowColor #1565C0
+    HeaderBackgroundColor #1565C0
+    HeaderFontColor white
+}
+
+skinparam interface {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+}
+
+skinparam abstract {
+    BackgroundColor #FFF3E0
+    BorderColor #E65100
+}
+
+title Diagramme de Classes - Hiérarchie Service
+
+interface Billable <<interface>> {
+    + getBillingId(): String
+    + getServiceType(): ServiceType
+    + calculateAmount(): BigDecimal
+    + getBillingDescription(): String
+    + isPaid(): boolean
+    + markAsPaid(): void
+    + getOutstandingBalance(): BigDecimal
+    + calculateDiscountedAmount(percent): BigDecimal
+}
+
+abstract class Service {
+    # id: String
+    # name: String
+    # description: String
+    # serviceType: ServiceType
+    # price: BigDecimal
+    # createdDate: LocalDate
+    # startDate: LocalDate
+    # endDate: LocalDate
+    # studentId: String
+    # paid: boolean
+    # active: boolean
+    --
+    # {abstract} getIdPrefix(): String
+    + {abstract} getDetailedInfo(): String
+    + {abstract} copy(): Service
+    + {abstract} isValid(): boolean
+    + isExpired(): boolean
+    + getRemainingDays(): long
+    + calculateAmount(): BigDecimal
+    + markAsPaid(): void
+}
+
+class CoursePackage {
+    - totalHours: int
+    - usedHours: int
+    - instrument: String
+    - unlimited: boolean
+    - maxLessonsPerWeek: int
+    --
+    + CoursePackage(CoursePackage other)
+    + getRemainingHours(): int
+    + useHours(hours): boolean
+    + refundHours(hours): void
+    + getUsagePercentage(): double
+    + getStatusDescription(): String
+    + isValid(): boolean
+    + copy(): Service
+}
+
+class IndividualLesson {
+    - instrument: String
+    - durationMinutes: int
+    - teacherId: String
+    - scheduledActivityId: String
+    - consumed: boolean
+    --
+    + IndividualLesson(IndividualLesson other)
+    + markAsConsumed(): void
+    + linkToScheduledActivity(activityId): void
+    + isValid(): boolean
+    + copy(): Service
+}
+
+class InstrumentRental {
+    - instrumentId: String
+    - instrumentName: String
+    - dailyRate: BigDecimal
+    - depositAmount: BigDecimal
+    - depositPaid: boolean
+    - instrumentReturned: boolean
+    - returnDate: LocalDate
+    --
+    + InstrumentRental(InstrumentRental other)
+    + markAsReturned(): void
+    + markDepositPaid(): void
+    + calculateLateFees(): BigDecimal
+    + isDepositRefundable(): boolean
+    + calculateAmount(): BigDecimal
+    + isValid(): boolean
+    + copy(): Service
+}
+
+enum ServiceType <<enumeration>> {
+    MUSIC_PACKAGE
+    UNLIMITED_PACKAGE
+    GROUP_LESSON
+    INDIVIDUAL_LESSON
+    SINGLE_LESSON
+    INSTRUMENT_RENTAL
+    ROOM_BOOKING
+}
+
+Billable <|.. Service
+Service <|-- CoursePackage
+Service <|-- IndividualLesson
+Service <|-- InstrumentRental
+
+Service --> ServiceType : has
+
+note right of Service
+    <b>Abstract Class</b>
+    Implements Billable interface
+    Base class for all services
+end note
+
+note bottom of Billable
+    <b>Interface</b>
+    Defines billing capabilities
+    for all chargeable items
+end note
+
+@enduml
+

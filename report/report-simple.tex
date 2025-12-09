@@ -1,0 +1,838 @@
+\documentclass[12pt,a4paper]{report}
+
+% ============ PACKAGES ============
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[english]{babel}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{longtable}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{enumitem}
+\usepackage{caption}
+
+% ============ PAGE SETUP ============
+\geometry{
+    left=2.5cm,
+    right=2.5cm,
+    top=2.5cm,
+    bottom=2.5cm
+}
+
+% ============ COLORS ============
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+\definecolor{darkblue}{rgb}{0.0,0.0,0.6}
+\definecolor{primarycolor}{RGB}{0,82,147}
+\definecolor{secondarycolor}{RGB}{70,130,180}
+
+% ============ CODE LISTING STYLE ============
+\lstdefinestyle{javastyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{darkblue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    language=Java,
+    frame=single,
+    rulecolor=\color{black}
+}
+
+\lstset{style=javastyle}
+
+% ============ HYPERREF SETUP ============
+\hypersetup{
+    colorlinks=true,
+    linkcolor=primarycolor,
+    filecolor=magenta,
+    urlcolor=secondarycolor,
+    pdftitle={Conservatoire Virtuel - Music School Management System},
+    pdfauthor={Hassen Ben Amor, Dalil Adimi},
+}
+
+% ============ HEADER/FOOTER ============
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyhead[R]{Conservatoire Virtuel}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% ============ CHAPTER FORMATTING ============
+\titleformat{\chapter}[display]
+{\normalfont\huge\bfseries\color{primarycolor}}
+{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+
+\titleformat{\section}
+{\normalfont\Large\bfseries\color{primarycolor}}
+{\thesection}{1em}{}
+
+\titleformat{\subsection}
+{\normalfont\large\bfseries\color{secondarycolor}}
+{\thesubsection}{1em}{}
+
+% ============ DOCUMENT START ============
+\begin{document}
+
+% ============ TITLE PAGE ============
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    
+    \textsc{\LARGE University Name}\\[0.5cm]
+    \textsc{\Large Department of Computer Science}\\[2cm]
+    
+    \rule{\linewidth}{0.5mm}\\[0.4cm]
+    {\huge\bfseries\color{primarycolor} Conservatoire Virtuel}\\[0.2cm]
+    {\Large Music School Management System}\\[0.2cm]
+    \rule{\linewidth}{0.5mm}\\[1.5cm]
+    
+    \Large\textbf{Object-Oriented Programming Project}\\[2cm]
+    
+    \begin{minipage}{0.4\textwidth}
+        \begin{flushleft}
+            \large\textbf{Authors:}\\[0.3cm]
+            Hassen \textsc{Ben Amor}\\
+            Dalil \textsc{Adimi}
+        \end{flushleft}
+    \end{minipage}
+    \begin{minipage}{0.4\textwidth}
+        \begin{flushright}
+            \large\textbf{Supervisor:}\\[0.3cm]
+            Prof. [Supervisor Name]\\[0.5cm]
+            \textbf{Academic Year:}\\
+            2024 -- 2025
+        \end{flushright}
+    \end{minipage}\\[3cm]
+    
+    \vfill
+    {\large \today}
+    
+\end{titlepage}
+
+% ============ ABSTRACT ============
+\chapter*{Abstract}
+\addcontentsline{toc}{chapter}{Abstract}
+
+The \textbf{Conservatoire Virtuel} project is a comprehensive music school management system developed in Java. This application addresses the operational needs of a private music school, providing functionality for managing students, teachers, course packages, lesson scheduling, payments, and official examinations.
+
+The system was designed with a strong emphasis on object-oriented programming principles, featuring abstract classes, interfaces, polymorphism, and copy constructors. The architecture follows best practices in software design, including the separation of concerns, encapsulation, and proper use of design patterns.
+
+Key features include a robust scheduling system with conflict prevention, a flexible billing system supporting various service types, and an exam management module with capacity control and result tracking.
+
+\vspace{1cm}
+\textbf{Keywords:} Java, OOP, Music School, Management System, Scheduling, Billing, Abstract Classes, Interfaces, Polymorphism
+
+% ============ TABLE OF CONTENTS ============
+\tableofcontents
+\listoffigures
+\listoftables
+
+% ============ CHAPTER 1: INTRODUCTION ============
+\chapter{Introduction}
+
+\section{Project Context}
+
+A private music school called \textbf{Conservatoire Virtuel} requires an information system to support its internal activities. The objective is to design and implement an application that manages all aspects of school operations efficiently and professionally.
+
+\section{Project Objectives}
+
+The main objectives of this project are to:
+
+\begin{enumerate}[label=\arabic*.]
+    \item Design a comprehensive domain model for a music school
+    \item Implement advanced object-oriented programming concepts
+    \item Develop a functional console-based application
+    \item Demonstrate proper software engineering practices
+    \item Create professional documentation including UML diagrams
+\end{enumerate}
+
+\section{Scope}
+
+The system manages the following aspects:
+
+\begin{itemize}
+    \item \textbf{People Management:} Students and teachers with their attributes and relationships
+    \item \textbf{Service Management:} Course packages, individual lessons, and instrument rentals
+    \item \textbf{Scheduling:} Lesson scheduling with conflict prevention and resource booking
+    \item \textbf{Financial Management:} Payments, invoicing, and billing
+    \item \textbf{Examination Management:} Official exams, registration, and results
+\end{itemize}
+
+\section{Document Structure}
+
+This report is organized as follows:
+
+\begin{itemize}
+    \item \textbf{Chapter 2:} Requirements Analysis
+    \item \textbf{Chapter 3:} System Design with UML
+    \item \textbf{Chapter 4:} Implementation Details
+    \item \textbf{Chapter 5:} OOP Concepts Discussion
+    \item \textbf{Chapter 6:} Testing and Results
+    \item \textbf{Chapter 7:} Conclusion
+\end{itemize}
+
+% ============ CHAPTER 2: REQUIREMENTS ============
+\chapter{Requirements Analysis}
+
+\section{Functional Requirements}
+
+\subsection{Student Management}
+
+A student is identified by a unique ID with the following attributes:
+\begin{itemize}
+    \item Last name, first name
+    \item Address, date of birth, phone, email
+    \item Level (Beginner/Intermediate/Advanced)
+    \item Preferred instruments
+\end{itemize}
+
+Students can enroll in:
+\begin{itemize}
+    \item Course Packages (N lessons with validity dates)
+    \item Individual lessons (billed per lesson)
+\end{itemize}
+
+The system tracks:
+\begin{itemize}
+    \item Purchased hours
+    \item Remaining hours
+    \item Usage history
+\end{itemize}
+
+\subsection{Teacher Management}
+
+Each teacher has:
+\begin{itemize}
+    \item ID, name, qualifications
+    \item Specializations (instruments they can teach)
+    \item Hourly rate
+    \item Availability schedule
+\end{itemize}
+
+\subsection{Course Packages and Services}
+
+The school offers:
+\begin{itemize}
+    \item Music packages (fixed hours)
+    \item Unlimited lessons packages
+    \item Group or individual lessons
+    \item Single paid lessons
+    \item Instrument rental
+    \item Room booking
+\end{itemize}
+
+\subsection{Scheduling System}
+
+The system allows scheduling of:
+\begin{itemize}
+    \item Lessons (teacher + student + room + instrument)
+    \item Room rentals
+    \item Exam sessions
+\end{itemize}
+
+For each scheduled activity:
+\begin{itemize}
+    \item Date and start time
+    \item Duration
+    \item Assigned resources
+    \item Status (scheduled/completed/cancelled)
+\end{itemize}
+
+\textbf{Important:} Schedule conflicts must be prevented.
+
+\subsection{Exam Management}
+
+The school organizes official exams:
+\begin{itemize}
+    \item Exams have a name, instrument, date, and capacity
+    \item Students can register
+    \item Results are recorded: pass/fail and optional score
+\end{itemize}
+
+\subsection{Payments and Billing}
+
+The system tracks:
+\begin{itemize}
+    \item Payments
+    \item Outstanding balances
+    \item Prices of packages, rentals, and lessons
+\end{itemize}
+
+\section{Business Rules}
+
+\begin{enumerate}
+    \item Package hours expire at the package end date
+    \item If a lesson is cancelled less than 24 hours before, it counts as consumed
+    \item Exam registration closes when maximum capacity is reached
+    \item A group lesson consumes one hour from each participant
+\end{enumerate}
+
+% ============ CHAPTER 3: SYSTEM DESIGN ============
+\chapter{System Design}
+
+\section{Architecture Overview}
+
+The system follows a layered architecture:
+
+\begin{enumerate}
+    \item \textbf{Presentation Layer:} Console-based user interface (\texttt{ConservatoireApp})
+    \item \textbf{Service Layer:} Business logic (\texttt{SchedulingService}, \texttt{PaymentService}, \texttt{ExamService})
+    \item \textbf{Repository Layer:} Data storage (\texttt{DataRepository})
+    \item \textbf{Model Layer:} Domain entities (Person, Service, ScheduledActivity, etc.)
+\end{enumerate}
+
+\section{Package Structure}
+
+\begin{verbatim}
+com.music.school/
+├── model/
+│   ├── person/      (Student, Teacher)
+│   ├── service/     (CoursePackage, IndividualLesson, InstrumentRental)
+│   ├── scheduling/  (Lesson, RoomBooking)
+│   ├── resource/    (Room, Instrument)
+│   ├── exam/        (Exam, ExamRegistration)
+│   └── billing/     (Invoice, Payment)
+├── interfaces/      (Schedulable, Billable, Bookable)
+├── enums/           (Level, ActivityStatus, PaymentStatus, etc.)
+├── service/         (Business logic services)
+├── repository/      (Data storage)
+└── data/            (Test data initialization)
+\end{verbatim}
+
+\section{Class Diagram}
+
+\subsection{Person Hierarchy}
+
+\begin{table}[H]
+\centering
+\caption{Person Class Hierarchy}
+\begin{tabular}{|l|l|l|p{6cm}|}
+\hline
+\textbf{Class} & \textbf{Type} & \textbf{Parent} & \textbf{Key Attributes} \\
+\hline
+Person & Abstract & - & id, firstName, lastName, email, dateOfBirth \\
+\hline
+Student & Concrete & Person & level, preferredInstruments, packageHours \\
+\hline
+Teacher & Concrete & Person & hourlyRate, specializations, availability \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Service Hierarchy}
+
+\begin{table}[H]
+\centering
+\caption{Service Class Hierarchy}
+\begin{tabular}{|l|l|l|p{6cm}|}
+\hline
+\textbf{Class} & \textbf{Type} & \textbf{Parent/Interface} & \textbf{Key Attributes} \\
+\hline
+Service & Abstract & Billable & id, name, price, studentId, paid \\
+\hline
+CoursePackage & Concrete & Service & totalHours, usedHours, instrument \\
+\hline
+IndividualLesson & Concrete & Service & instrument, durationMinutes \\
+\hline
+InstrumentRental & Concrete & Service & dailyRate, depositAmount \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{ScheduledActivity Hierarchy}
+
+\begin{table}[H]
+\centering
+\caption{ScheduledActivity Class Hierarchy}
+\begin{tabular}{|l|l|l|p{6cm}|}
+\hline
+\textbf{Class} & \textbf{Type} & \textbf{Parent/Interface} & \textbf{Key Attributes} \\
+\hline
+ScheduledActivity & Abstract & Schedulable & id, dateTime, duration, status, roomId \\
+\hline
+Lesson & Concrete & ScheduledActivity & teacherId, studentIds, instrument \\
+\hline
+RoomBooking & Concrete & ScheduledActivity & studentId, hourlyRate, purpose \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Complete Class Summary}
+
+\begin{table}[H]
+\centering
+\caption{Summary of All Classes}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Class} & \textbf{Type} & \textbf{Interfaces} \\
+\hline
+Person & Abstract & - \\
+Student & Concrete & - \\
+Teacher & Concrete & Bookable \\
+\hline
+Service & Abstract & Billable \\
+CoursePackage & Concrete & Billable \\
+IndividualLesson & Concrete & Billable \\
+InstrumentRental & Concrete & Billable \\
+\hline
+ScheduledActivity & Abstract & Schedulable \\
+Lesson & Concrete & Schedulable \\
+RoomBooking & Concrete & Schedulable \\
+\hline
+Room & Concrete & Bookable \\
+Instrument & Concrete & Bookable \\
+Exam & Concrete & - \\
+Invoice & Concrete & - \\
+Payment & Concrete & - \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Sequence Diagram: Scheduling a Lesson}
+
+The lesson scheduling process follows these steps:
+
+\begin{enumerate}
+    \item User calls \texttt{scheduleLesson()} on SchedulingService
+    \item Service retrieves Teacher from DataRepository
+    \item Service validates teacher can teach the instrument (\texttt{canTeach()})
+    \item Service checks for scheduling conflicts
+    \item Service verifies teacher availability (\texttt{isAvailableAt()})
+    \item Service verifies room availability (\texttt{isAvailableAt()})
+    \item Service adds bookings to Teacher and Room
+    \item Service saves Lesson to DataRepository
+    \item Service returns the created Lesson
+\end{enumerate}
+
+\begin{table}[H]
+\centering
+\caption{Sequence Diagram Steps}
+\begin{tabular}{|c|l|l|l|}
+\hline
+\textbf{Step} & \textbf{From} & \textbf{To} & \textbf{Message} \\
+\hline
+1 & User & SchedulingService & scheduleLesson() \\
+2 & SchedulingService & DataRepository & getTeacher(id) \\
+3 & SchedulingService & Teacher & canTeach(instrument) \\
+4 & SchedulingService & DataRepository & checkConflicts() \\
+5 & SchedulingService & Teacher & isAvailableAt() \\
+6 & SchedulingService & Room & isAvailableAt() \\
+7 & SchedulingService & Teacher & addBooking() \\
+8 & SchedulingService & Room & addBooking() \\
+9 & SchedulingService & DataRepository & addScheduledActivity() \\
+10 & SchedulingService & User & return Lesson \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Activity Diagram: Exam Registration}
+
+The exam registration process:
+
+\begin{enumerate}
+    \item Start
+    \item Select Exam
+    \item Check: Is registration open?
+    \begin{itemize}
+        \item No $\rightarrow$ Return Error
+        \item Yes $\rightarrow$ Continue
+    \end{itemize}
+    \item Check: Before deadline?
+    \begin{itemize}
+        \item No $\rightarrow$ Return Error
+        \item Yes $\rightarrow$ Continue
+    \end{itemize}
+    \item Check: Spots available?
+    \begin{itemize}
+        \item No $\rightarrow$ Return Error
+        \item Yes $\rightarrow$ Continue
+    \end{itemize}
+    \item Check: Already registered?
+    \begin{itemize}
+        \item Yes $\rightarrow$ Return Error
+        \item No $\rightarrow$ Continue
+    \end{itemize}
+    \item Create Registration
+    \item Return Success
+    \item End
+\end{enumerate}
+
+% ============ CHAPTER 4: IMPLEMENTATION ============
+\chapter{Implementation Details}
+
+\section{Technology Stack}
+
+\begin{itemize}
+    \item \textbf{Language:} Java 17
+    \item \textbf{Build Tool:} Maven 3.x
+    \item \textbf{IDE:} IntelliJ IDEA / VS Code
+\end{itemize}
+
+\section{Key Implementation Details}
+
+\subsection{Abstract Person Class}
+
+\begin{lstlisting}[caption={Person Abstract Class}]
+public abstract class Person {
+    protected String id;
+    protected String firstName;
+    protected String lastName;
+    protected String email;
+    protected LocalDate dateOfBirth;
+    
+    // Copy constructor
+    protected Person(Person other) {
+        this.id = other.id;
+        this.firstName = other.firstName;
+        this.lastName = other.lastName;
+        this.email = other.email;
+        this.dateOfBirth = other.dateOfBirth;
+    }
+    
+    // Abstract methods
+    protected abstract String getIdPrefix();
+    public abstract String getRole();
+    public abstract Person copy();
+    
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+}
+\end{lstlisting}
+
+\subsection{Schedulable Interface}
+
+\begin{lstlisting}[caption={Schedulable Interface}]
+public interface Schedulable {
+    LocalDateTime getScheduledDateTime();
+    Duration getDuration();
+    ActivityStatus getStatus();
+    
+    default LocalDateTime getEndDateTime() {
+        return getScheduledDateTime().plus(getDuration());
+    }
+    
+    default boolean conflictsWith(Schedulable other) {
+        LocalDateTime thisStart = this.getScheduledDateTime();
+        LocalDateTime thisEnd = this.getEndDateTime();
+        LocalDateTime otherStart = other.getScheduledDateTime();
+        LocalDateTime otherEnd = other.getEndDateTime();
+        
+        return thisStart.isBefore(otherEnd) && 
+               thisEnd.isAfter(otherStart);
+    }
+    
+    default boolean canCancelWithoutPenalty() {
+        return LocalDateTime.now().plusHours(24)
+            .isBefore(getScheduledDateTime());
+    }
+}
+\end{lstlisting}
+
+\subsection{Conflict Detection}
+
+\begin{lstlisting}[caption={Scheduling Conflict Detection}]
+public List<String> checkSchedulingConflicts(
+        String teacherId, List<String> studentIds,
+        String roomId, LocalDateTime dateTime, 
+        int durationMinutes) {
+    
+    List<String> conflicts = new ArrayList<>();
+    
+    // Check teacher conflicts
+    for (Lesson lesson : repository.getTeacherLessons(teacherId)) {
+        if (tempSchedulable.conflictsWith(lesson)) {
+            conflicts.add("Teacher has another lesson");
+        }
+    }
+    
+    // Check room conflicts
+    for (ScheduledActivity activity : 
+            repository.getRoomActivities(roomId)) {
+        if (tempSchedulable.conflictsWith(activity)) {
+            conflicts.add("Room is already booked");
+        }
+    }
+    
+    return conflicts;
+}
+\end{lstlisting}
+
+\subsection{Copy Constructor Example}
+
+\begin{lstlisting}[caption={Student Copy Constructor}]
+public class Student extends Person {
+    private Level level;
+    private List<String> preferredInstruments;
+    private Map<String, Integer> packageHours;
+    
+    // Copy constructor
+    public Student(Student other) {
+        super(other);  // Call parent copy constructor
+        this.level = other.level;
+        // Deep copy of collections
+        this.preferredInstruments = 
+            new ArrayList<>(other.preferredInstruments);
+        this.packageHours = 
+            new HashMap<>(other.packageHours);
+    }
+    
+    @Override
+    public Person copy() {
+        return new Student(this);
+    }
+}
+\end{lstlisting}
+
+% ============ CHAPTER 5: OOP CONCEPTS ============
+\chapter{Object-Oriented Programming Concepts}
+
+\section{Abstract Classes}
+
+The system implements three abstract classes:
+
+\begin{table}[H]
+\centering
+\caption{Abstract Classes Summary}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Abstract Class} & \textbf{Extended By} & \textbf{Abstract Methods} \\
+\hline
+Person & Student, Teacher & getIdPrefix(), getRole(), copy() \\
+\hline
+Service & CoursePackage, IndividualLesson, InstrumentRental & getIdPrefix(), isValid(), copy() \\
+\hline
+ScheduledActivity & Lesson, RoomBooking & getIdPrefix(), getActivityType(), consumesLessonHours() \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Interfaces}
+
+Three interfaces define independent capabilities:
+
+\begin{table}[H]
+\centering
+\caption{Interfaces Summary}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Interface} & \textbf{Implemented By} & \textbf{Key Methods} \\
+\hline
+Schedulable & ScheduledActivity, Lesson, RoomBooking & getScheduledDateTime(), conflictsWith() \\
+\hline
+Billable & Service and subclasses & calculateAmount(), getBillingDescription() \\
+\hline
+Bookable & Teacher, Room, Instrument & isAvailableAt(), addBooking() \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Polymorphism}
+
+\subsection{Polymorphic Collections}
+
+\begin{lstlisting}[caption={Polymorphic Collections}]
+// List of Person containing both Student and Teacher
+List<Person> people = new ArrayList<>();
+people.addAll(repository.getAllStudents());
+people.addAll(repository.getAllTeachers());
+
+for (Person person : people) {
+    // Dynamic dispatch - different output for each type
+    System.out.println(person.getRole());
+}
+\end{lstlisting}
+
+\subsection{Polymorphic Method Calls}
+
+\begin{lstlisting}[caption={Polymorphic Billing}]
+// All services implement Billable
+List<Billable> billables = new ArrayList<>();
+billables.addAll(packages);     // CoursePackage
+billables.addAll(lessons);      // IndividualLesson
+billables.addAll(rentals);      // InstrumentRental
+
+for (Billable b : billables) {
+    // calculateAmount() varies by type
+    total = total.add(b.calculateAmount());
+}
+\end{lstlisting}
+
+\section{Copy Constructors}
+
+Copy constructors are implemented in all major classes:
+
+\begin{itemize}
+    \item Student, Teacher
+    \item CoursePackage, IndividualLesson, InstrumentRental
+    \item Lesson, RoomBooking
+    \item Room, Instrument
+    \item Exam, Invoice, Payment
+\end{itemize}
+
+\section{Encapsulation}
+
+\begin{itemize}
+    \item All fields are \texttt{private} or \texttt{protected}
+    \item Getters return defensive copies of mutable collections
+    \item Setters validate input data
+\end{itemize}
+
+\begin{lstlisting}[caption={Defensive Copy}]
+public List<String> getPreferredInstruments() {
+    return new ArrayList<>(preferredInstruments);
+}
+\end{lstlisting}
+
+% ============ CHAPTER 6: TESTING ============
+\chapter{Testing and Results}
+
+\section{Test Data}
+
+The system includes comprehensive test data:
+
+\begin{itemize}
+    \item \textbf{8 Students} (including 3 minors)
+    \item \textbf{5 Teachers} (Piano, Violin, Guitar, Drums, Flute)
+    \item \textbf{8 Rooms} (Studios, Practice Rooms, Ensemble Hall)
+    \item \textbf{7 Instruments} for rental
+    \item \textbf{5 Course Packages}
+    \item \textbf{4 Upcoming Exams}
+\end{itemize}
+
+\section{Application Screenshots}
+
+\subsection{Main Menu}
+
+\begin{verbatim}
+╔══════════════════════════════════════════╗
+║              MAIN MENU                   ║
+╠══════════════════════════════════════════╣
+║  1. Manage Students and Teachers         ║
+║  2. Manage Course Packages & Lessons     ║
+║  3. Manage Scheduling and Booking        ║
+║  4. Manage Payments and Billing          ║
+║  5. Manage Exams and Results             ║
+║  6. Demonstrate OOP Concepts             ║
+║  0. Exit                                 ║
+╚══════════════════════════════════════════╝
+\end{verbatim}
+
+\subsection{Student Listing}
+
+\begin{verbatim}
+═══ ALL STUDENTS (8) ═══
+ID              Name                 Level          Hours
+------------------------------------------------------------------------
+STU-A1B2C3D4    Alice Moreau        Intermediate    8
+STU-E5F6G7H8    Thomas Leroy        Beginner        6
+STU-I9J0K1L2    Emma Dubois         Advanced        Unlimited
+\end{verbatim}
+
+\subsection{Conflict Detection}
+
+\begin{verbatim}
+✗ Error: Scheduling conflicts detected:
+  - Teacher has another lesson at 2025-01-15T10:00
+  - Room has another booking at 2025-01-15T10:00
+\end{verbatim}
+
+% ============ CHAPTER 7: CONCLUSION ============
+\chapter{Conclusion}
+
+\section{Summary}
+
+The \textbf{Conservatoire Virtuel} project successfully implements a comprehensive music school management system meeting all specified requirements.
+
+\section{OOP Requirements Checklist}
+
+\begin{table}[H]
+\centering
+\caption{OOP Requirements Fulfilled}
+\begin{tabular}{|l|c|l|}
+\hline
+\textbf{Requirement} & \textbf{Status} & \textbf{Implementation} \\
+\hline
+Abstract Classes (2+) & $\checkmark$ & Person, Service, ScheduledActivity \\
+Interfaces (2+) & $\checkmark$ & Schedulable, Billable, Bookable \\
+Polymorphism & $\checkmark$ & Collections and method calls \\
+Copy Constructors & $\checkmark$ & All major classes \\
+Inheritance & $\checkmark$ & Multiple hierarchies \\
+Composition & $\checkmark$ & Teacher-TimeRange, Exam-Registration \\
+Encapsulation & $\checkmark$ & Private fields, defensive copies \\
+\hline
+\end{tabular}
+\end{table}
+
+\section{Future Improvements}
+
+\begin{itemize}
+    \item Database integration
+    \item Graphical user interface
+    \item REST API
+    \item Email notifications
+\end{itemize}
+
+% ============ APPENDIX ============
+\appendix
+
+\chapter{How to Run}
+
+\begin{lstlisting}[language=bash]
+# Navigate to project directory
+cd java-project
+
+# Compile and run with Maven
+mvn clean compile
+mvn exec:java -Dexec.mainClass="com.music.school.ConservatoireApp"
+
+# Or package and run as JAR
+mvn package
+java -jar target/conservatoire-virtuel-1.0.0.jar
+\end{lstlisting}
+
+% ============ BIBLIOGRAPHY ============
+\begin{thebibliography}{9}
+
+\bibitem{java17}
+Oracle Corporation,
+\textit{Java SE 17 Documentation},
+2021.
+
+\bibitem{oop}
+Bertrand Meyer,
+\textit{Object-Oriented Software Construction},
+Prentice Hall, 2nd Edition, 1997.
+
+\bibitem{cleancode}
+Robert C. Martin,
+\textit{Clean Code: A Handbook of Agile Software Craftsmanship},
+Prentice Hall, 2008.
+
+\end{thebibliography}
+
+\end{document}
+

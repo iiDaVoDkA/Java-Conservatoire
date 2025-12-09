@@ -1,0 +1,93 @@
+@startuml class-diagram-exam
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam classAttributeFontSize 12
+skinparam classFontStyle bold
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+
+skinparam class {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+    ArrowColor #1565C0
+    HeaderBackgroundColor #1565C0
+    HeaderFontColor white
+}
+
+title Diagramme de Classes - Gestion des Examens
+
+class Exam {
+    - id: String
+    - name: String
+    - instrument: String
+    - examDateTime: LocalDateTime
+    - durationMinutes: int
+    - maxCapacity: int
+    - roomId: String
+    - examinerId: String
+    - registrationFee: BigDecimal
+    - description: String
+    - registrations: Map<String, ExamRegistration>
+    - registrationOpen: boolean
+    - registrationDeadline: LocalDateTime
+    --
+    + Exam(Exam other)
+    + registerStudent(studentId): ExamRegistration
+    + cancelRegistration(studentId): boolean
+    + recordResult(studentId, result, score): boolean
+    + canRegister(): boolean
+    + getAvailableSpots(): int
+    + getRegisteredStudentIds(): List<String>
+    + getRegistration(studentId): ExamRegistration
+    + getAllRegistrations(): List<ExamRegistration>
+    + closeRegistration(): void
+    + openRegistration(): void
+    + getPassRate(): double
+    + getDetailedInfo(): String
+    + copy(): Exam
+}
+
+class ExamRegistration {
+    - registrationId: String
+    - examId: String
+    - studentId: String
+    - registrationDate: LocalDateTime
+    - fee: BigDecimal
+    - feePaid: boolean
+    - result: ExamResult
+    - score: Integer
+    --
+    + ExamRegistration(ExamRegistration other)
+}
+
+enum ExamResult <<enumeration>> {
+    PENDING
+    PASS
+    FAIL
+    DISTINCTION
+    ABSENT
+    --
+    + isPassing(): boolean
+}
+
+Exam *-- ExamRegistration : contains
+ExamRegistration --> ExamResult : has
+
+note right of Exam
+    <b>Composition</b>
+    Exam contains ExamRegistration objects
+    
+    <b>Business Rules:</b>
+    - Registration closes at capacity
+    - Registration has deadline
+    - Results include optional score
+end note
+
+note bottom of ExamResult
+    PASS and DISTINCTION
+    are passing results
+end note
+
+@enduml
+

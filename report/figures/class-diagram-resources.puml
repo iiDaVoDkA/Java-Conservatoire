@@ -1,0 +1,113 @@
+@startuml class-diagram-resources
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam classAttributeFontSize 12
+skinparam classFontStyle bold
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+
+skinparam class {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+    ArrowColor #1565C0
+    HeaderBackgroundColor #1565C0
+    HeaderFontColor white
+}
+
+skinparam interface {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+}
+
+title Diagramme de Classes - Ressources (Room & Instrument)
+
+interface Bookable <<interface>> {
+    + getResourceId(): String
+    + getResourceName(): String
+    + isAvailableAt(dateTime, duration): boolean
+    + getBookedSlots(): List<TimeSlot>
+    + addBooking(slot): boolean
+    + removeBooking(slot): boolean
+    + isUnderMaintenance(): boolean
+    + getResourceDescription(): String
+}
+
+class Room {
+    - id: String
+    - name: String
+    - capacity: int
+    - equipment: List<String>
+    - suitableInstruments: List<String>
+    - available: boolean
+    - underMaintenance: boolean
+    - bookedSlots: List<TimeSlot>
+    --
+    + Room(Room other)
+    + isSuitableFor(instrument): boolean
+    + addEquipment(item): void
+    + isAvailableAt(dateTime, duration): boolean
+    + addBooking(slot): boolean
+    + removeBooking(slot): boolean
+    + getDetailedInfo(): String
+    + copy(): Room
+}
+
+class Instrument {
+    - id: String
+    - name: String
+    - type: String
+    - brand: String
+    - serialNumber: String
+    - dailyRentalRate: BigDecimal
+    - depositRequired: BigDecimal
+    - available: boolean
+    - underMaintenance: boolean
+    - condition: String
+    - currentRenterId: String
+    - bookedSlots: List<TimeSlot>
+    --
+    + Instrument(Instrument other)
+    + rentTo(studentId): boolean
+    + returnFromRental(): void
+    + isRented(): boolean
+    + isAvailableAt(dateTime, duration): boolean
+    + addBooking(slot): boolean
+    + removeBooking(slot): boolean
+    + getDetailedInfo(): String
+    + copy(): Instrument
+}
+
+class "Bookable.TimeSlot" as TimeSlot <<record>> {
+    + start: LocalDateTime
+    + end: LocalDateTime
+    + bookingReference: String
+    --
+    + overlaps(other): boolean
+    + getDurationMinutes(): long
+}
+
+Bookable <|.. Room
+Bookable <|.. Instrument
+
+Room --> TimeSlot : contains
+Instrument --> TimeSlot : contains
+
+note right of Bookable
+    <b>Interface</b>
+    Common interface for all
+    bookable resources
+end note
+
+note bottom of Room
+    Practice and lesson rooms
+    with capacity and equipment info
+end note
+
+note bottom of Instrument
+    Musical instruments
+    available for rental
+end note
+
+@enduml
+

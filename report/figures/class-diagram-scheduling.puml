@@ -1,0 +1,135 @@
+@startuml class-diagram-scheduling
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam classAttributeFontSize 12
+skinparam classFontStyle bold
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+
+skinparam class {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+    ArrowColor #1565C0
+    HeaderBackgroundColor #1565C0
+    HeaderFontColor white
+}
+
+skinparam interface {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+}
+
+skinparam abstract {
+    BackgroundColor #FFF3E0
+    BorderColor #E65100
+}
+
+title Diagramme de Classes - Hiérarchie ScheduledActivity
+
+interface Schedulable <<interface>> {
+    + getScheduledDateTime(): LocalDateTime
+    + setScheduledDateTime(dateTime): void
+    + getDuration(): Duration
+    + setDuration(duration): void
+    + getStatus(): ActivityStatus
+    + setStatus(status): void
+    + getEndDateTime(): LocalDateTime
+    + conflictsWith(other): boolean
+    + canCancelWithoutPenalty(): boolean
+    + isPast(): boolean
+    + isOngoing(): boolean
+}
+
+abstract class ScheduledActivity {
+    # id: String
+    # scheduledDateTime: LocalDateTime
+    # duration: Duration
+    # status: ActivityStatus
+    # roomId: String
+    # notes: String
+    # createdAt: LocalDateTime
+    # updatedAt: LocalDateTime
+    --
+    # {abstract} getIdPrefix(): String
+    + {abstract} getActivityType(): String
+    + {abstract} getDetailedInfo(): String
+    + {abstract} copy(): ScheduledActivity
+    + {abstract} consumesLessonHours(): boolean
+    + complete(): void
+    + cancel(): boolean
+    + canReschedule(): boolean
+    + reschedule(newDateTime): boolean
+    + getDurationMinutes(): long
+}
+
+class Lesson {
+    - teacherId: String
+    - studentIds: List<String>
+    - instrument: String
+    - instrumentId: String
+    - isGroupLesson: boolean
+    - packageId: String
+    - serviceId: String
+    --
+    + Lesson(Lesson other)
+    + addStudent(studentId): void
+    + removeStudent(studentId): boolean
+    + getStudentCount(): int
+    + hasStudent(studentId): boolean
+    + getHoursPerStudent(): int
+    + getActivityType(): String
+    + consumesLessonHours(): boolean
+    + copy(): ScheduledActivity
+}
+
+class RoomBooking {
+    - studentId: String
+    - hourlyRate: BigDecimal
+    - purpose: String
+    - paid: boolean
+    --
+    + RoomBooking(RoomBooking other)
+    + calculateCost(): BigDecimal
+    + markAsPaid(): void
+    + getActivityType(): String
+    + consumesLessonHours(): boolean
+    + copy(): ScheduledActivity
+}
+
+enum ActivityStatus <<enumeration>> {
+    SCHEDULED
+    IN_PROGRESS
+    COMPLETED
+    CANCELLED
+    NO_SHOW
+    --
+    + isFinalized(): boolean
+    + consumesHours(): boolean
+}
+
+Schedulable <|.. ScheduledActivity
+ScheduledActivity <|-- Lesson
+ScheduledActivity <|-- RoomBooking
+
+ScheduledActivity --> ActivityStatus : has
+
+note right of ScheduledActivity
+    <b>Abstract Class</b>
+    Implements Schedulable interface
+    Base class for all scheduled activities
+end note
+
+note bottom of Schedulable
+    <b>Interface</b>
+    Provides conflict detection
+    and scheduling capabilities
+end note
+
+note left of Lesson
+    Supports both individual
+    and group lessons
+end note
+
+@enduml
+

@@ -1,0 +1,72 @@
+@startuml activity-lesson-completion
+
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+
+skinparam activity {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+}
+
+skinparam diamond {
+    BackgroundColor #FFF3E0
+    BorderColor #E65100
+}
+
+title Diagramme d'Activité - Complétion d'une Leçon
+
+start
+
+:Récupérer ScheduledActivity par ID;
+
+if (Activité trouvée ?) then (Oui)
+    :Marquer comme COMPLETED;
+    :Mettre à jour updatedAt;
+    
+    if (Activité est une Leçon ?) then (Oui)
+        :Calculer heures par étudiant;
+        note right
+            hoursPerStudent = 
+            ceil(durationMinutes / 60)
+        end note
+        
+        :Récupérer liste des étudiants;
+        
+        partition "Pour chaque étudiant" {
+            :Récupérer Student;
+            :Consommer heures du forfait;
+            note right
+                student.consumeHours(hours)
+                Déduire des packageHours (FIFO)
+            end note
+            :Incrémenter totalConsumedHours;
+        }
+        
+        #palegreen:Leçon complétée\nHeures déduites;
+        
+    else (Non - RoomBooking)
+        #palegreen:Réservation complétée\nPas d'heures à déduire;
+        note right
+            Les réservations de salle
+            ne consomment pas d'heures
+            de forfait
+        end note
+    endif
+    
+else (Non)
+    #pink:Erreur: Activité non trouvée;
+endif
+
+stop
+
+legend right
+    <b>Consommation d'Heures</b>
+    |= Type |= Consomme heures ? |
+    | Lesson COMPLETED | Oui |
+    | Lesson CANCELLED (>24h) | Non |
+    | Lesson NO_SHOW (<24h) | Oui |
+    | RoomBooking | Non |
+endlegend
+
+@enduml
+

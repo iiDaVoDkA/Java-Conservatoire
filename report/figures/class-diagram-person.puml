@@ -1,0 +1,125 @@
+@startuml class-diagram-person
+
+skinparam classAttributeIconSize 0
+skinparam classFontSize 14
+skinparam classAttributeFontSize 12
+skinparam classFontStyle bold
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+
+skinparam class {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+    ArrowColor #1565C0
+    HeaderBackgroundColor #1565C0
+    HeaderFontColor white
+}
+
+skinparam interface {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+}
+
+skinparam abstract {
+    BackgroundColor #FFF3E0
+    BorderColor #E65100
+}
+
+title Diagramme de Classes - Hiérarchie Person
+
+abstract class Person {
+    # id: String
+    # firstName: String
+    # lastName: String
+    # address: String
+    # dateOfBirth: LocalDate
+    # phone: String
+    # email: String
+    # registrationDate: LocalDate
+    # active: boolean
+    --
+    # {abstract} getIdPrefix(): String
+    + {abstract} getRole(): String
+    + {abstract} getDetailedInfo(): String
+    + {abstract} copy(): Person
+    + getFullName(): String
+    + getAge(): int
+    + isMinor(): boolean
+    + getSummary(): String
+}
+
+class Student {
+    - level: Level
+    - preferredInstruments: List<String>
+    - packageHours: Map<String, Integer>
+    - enrolledPackageIds: List<String>
+    - totalPurchasedHours: int
+    - totalConsumedHours: int
+    - parentGuardianName: String
+    - parentGuardianPhone: String
+    --
+    + Student(Student other)
+    + getRemainingHours(): int
+    + addPackageHours(packageId, hours): void
+    + consumeHours(hours): boolean
+    + addPreferredInstrument(instrument): void
+    + hasAvailableHours(hours): boolean
+    + getRole(): String
+    + copy(): Person
+}
+
+class Teacher {
+    - specializations: List<String>
+    - qualifications: List<String>
+    - hourlyRate: BigDecimal
+    - availability: Map<DayOfWeek, List<TimeRange>>
+    - bookedSlots: List<TimeSlot>
+    - yearsOfExperience: int
+    - biography: String
+    --
+    + Teacher(Teacher other)
+    + addSpecialization(instrument): void
+    + canTeach(instrument): boolean
+    + setAvailability(day, start, end): void
+    + isAvailableAt(dateTime, duration): boolean
+    + addBooking(slot): boolean
+    + removeBooking(slot): boolean
+    + getRole(): String
+    + copy(): Person
+}
+
+interface Bookable <<interface>> {
+    + getResourceId(): String
+    + getResourceName(): String
+    + isAvailableAt(dateTime, duration): boolean
+    + getBookedSlots(): List<TimeSlot>
+    + addBooking(slot): boolean
+    + removeBooking(slot): boolean
+}
+
+enum Level <<enumeration>> {
+    BEGINNER
+    INTERMEDIATE
+    ADVANCED
+}
+
+Person <|-- Student
+Person <|-- Teacher
+Bookable <|.. Teacher
+
+Student --> Level : has
+
+note right of Person
+    <b>Abstract Class</b>
+    Base class for all persons
+    in the music school system
+end note
+
+note bottom of Bookable
+    <b>Interface</b>
+    Implemented by resources
+    that can be reserved
+end note
+
+@enduml
+

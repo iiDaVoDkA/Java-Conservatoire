@@ -1,0 +1,121 @@
+@startuml component-diagram
+
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+
+skinparam component {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+}
+
+skinparam package {
+    BackgroundColor #F5F5F5
+    BorderColor #9E9E9E
+}
+
+skinparam interface {
+    BackgroundColor #E8F5E9
+    BorderColor #2E7D32
+}
+
+title Diagramme de Composants - Architecture du Système
+
+package "Presentation Layer" {
+    [ConservatoireApp] as App
+    note right of App
+        Console-based UI
+        Menu navigation
+        User input handling
+    end note
+}
+
+package "Service Layer" {
+    [SchedulingService] as SS
+    [PaymentService] as PS
+    [ExamService] as ES
+}
+
+package "Repository Layer" {
+    [DataRepository] as DR
+    note right of DR
+        Singleton pattern
+        In-memory storage
+        CRUD operations
+    end note
+}
+
+package "Model Layer" {
+    package "person" {
+        [Person] as PersonComp
+        [Student]
+        [Teacher]
+    }
+    
+    package "service" {
+        [Service] as ServiceComp
+        [CoursePackage]
+        [IndividualLesson]
+        [InstrumentRental]
+    }
+    
+    package "scheduling" {
+        [ScheduledActivity] as SAComp
+        [Lesson]
+        [RoomBooking]
+    }
+    
+    package "resource" {
+        [Room]
+        [Instrument]
+    }
+    
+    package "exam" {
+        [Exam]
+    }
+    
+    package "billing" {
+        [Invoice]
+        [Payment]
+    }
+}
+
+package "Interfaces" {
+    interface Schedulable
+    interface Billable
+    interface Bookable
+}
+
+package "Data" {
+    [TestDataInitializer] as TDI
+}
+
+' Relationships
+App --> SS : uses
+App --> PS : uses
+App --> ES : uses
+App --> DR : uses
+
+SS --> DR : uses
+PS --> DR : uses
+ES --> DR : uses
+
+TDI --> DR : populates
+
+ServiceComp ..|> Billable
+SAComp ..|> Schedulable
+[Teacher] ..|> Bookable
+[Room] ..|> Bookable
+[Instrument] ..|> Bookable
+
+[Student] --|> PersonComp
+[Teacher] --|> PersonComp
+
+[CoursePackage] --|> ServiceComp
+[IndividualLesson] --|> ServiceComp
+[InstrumentRental] --|> ServiceComp
+
+[Lesson] --|> SAComp
+[RoomBooking] --|> SAComp
+
+@enduml
+

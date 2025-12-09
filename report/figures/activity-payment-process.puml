@@ -1,0 +1,84 @@
+@startuml activity-payment-process
+
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+
+skinparam activity {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+}
+
+skinparam diamond {
+    BackgroundColor #FFF3E0
+    BorderColor #E65100
+}
+
+title Diagramme d'Activité - Processus de Paiement
+
+|Utilisateur|
+start
+:Sélectionner étudiant;
+:Entrer montant;
+:Choisir méthode de paiement;
+note right
+    Méthodes disponibles:
+    - Cash
+    - Card
+    - Transfer
+    - Check
+end note
+
+|PaymentService|
+:Valider l'étudiant existe;
+
+if (Étudiant valide ?) then (Oui)
+    :Créer Payment;
+    :Générer ID unique;
+    :Définir paymentDate = now();
+    :Définir status = PENDING;
+    
+    :Traiter le paiement;
+    :status = PAID;
+    
+    :Sauvegarder Payment;
+    
+    if (Lié à une facture ?) then (Oui)
+        |Invoice|
+        :Récupérer Invoice;
+        :Ajouter au paidAmount;
+        
+        if (paidAmount >= totalAmount ?) then (Oui)
+            :status = PAID;
+            #palegreen:Facture entièrement payée;
+        else (Non)
+            if (paidAmount > 0 ?) then (Oui)
+                :status = PARTIAL;
+                #yellow:Paiement partiel;
+            endif
+        endif
+    endif
+    
+    |PaymentService|
+    #palegreen:Retourner Payment;
+    
+else (Non)
+    #pink:Erreur: Étudiant non trouvé;
+endif
+
+|Utilisateur|
+:Afficher confirmation;
+
+stop
+
+legend right
+    <b>Statuts de Paiement</b>
+    |= Statut |= Condition |
+    | PENDING | En attente de traitement |
+    | PAID | Paiement complet |
+    | PARTIAL | Paiement partiel reçu |
+    | OVERDUE | Date d'échéance dépassée |
+    | REFUNDED | Remboursé |
+endlegend
+
+@enduml
+

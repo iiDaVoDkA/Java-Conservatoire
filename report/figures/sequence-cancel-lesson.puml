@@ -1,0 +1,89 @@
+@startuml sequence-cancel-lesson
+
+skinparam backgroundColor #FEFEFE
+skinparam shadowing false
+
+skinparam participant {
+    BackgroundColor #E3F2FD
+    BorderColor #1565C0
+}
+
+skinparam actor {
+    BackgroundColor #FFF3E0
+    BorderColor #E65100
+}
+
+title Diagramme de Séquence - Annulation d'une Leçon (Règle des 24h)
+
+actor User as "Utilisateur"
+participant "SchedulingService" as SS
+participant "ScheduledActivity" as SA
+participant "DataRepository" as DR
+participant "Teacher" as T
+participant "Room" as R
+
+User -> SS : cancelActivity(activityId)
+activate SS
+
+SS -> DR : getScheduledActivity(activityId)
+activate DR
+DR --> SS : activity
+deactivate DR
+
+SS -> SA : cancel()
+activate SA
+
+SA -> SA : canCancelWithoutPenalty()
+note right
+    Checks if current time + 24 hours
+    is before scheduled time
+end note
+
+alt More than 24h before
+    SA -> SA : status = CANCELLED
+    SA --> SS : true (without penalty)
+else Less than 24h before
+    SA -> SA : status = NO_SHOW
+    note right
+        Counts as consumed
+        Hours deducted from package
+    end note
+    SA --> SS : false (with penalty)
+end
+deactivate SA
+
+SS -> SS : releaseResources(activity)
+
+SS -> DR : getRoom(roomId)
+activate DR
+DR --> SS : room
+deactivate DR
+
+SS -> R : removeBooking(timeSlot)
+activate R
+R --> SS : removed
+deactivate R
+
+alt activity is Lesson
+    SS -> DR : getTeacher(teacherId)
+    activate DR
+    DR --> SS : teacher
+    deactivate DR
+    
+    SS -> T : removeBooking(timeSlot)
+    activate T
+    T --> SS : removed
+    deactivate T
+end
+
+SS --> User : boolean (withoutPenalty)
+deactivate SS
+
+note bottom of SA
+    <b>Business Rule:</b>
+    If a lesson is cancelled less than
+    24 hours before, it counts as consumed.
+end note
+
+@enduml
+
