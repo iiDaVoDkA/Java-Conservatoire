@@ -1,0 +1,757 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam classFontSize 11
+skinparam linetype ortho
+
+title Music School Management System - Complete Class Diagram
+
+' ==================== INTERFACES ====================
+interface Billable <<interface>> {
+  + getBillingId(): String
+  + getServiceType(): ServiceType
+  + calculateAmount(): BigDecimal
+  + getBillingDescription(): String
+  + isPaid(): boolean
+  + markAsPaid(): void
+  + getOutstandingBalance(): BigDecimal
+  + calculateDiscountedAmount(discountPercent: double): BigDecimal
+  + requiresImmediatePayment(): boolean
+}
+
+interface Schedulable <<interface>> {
+  + getScheduledDateTime(): LocalDateTime
+  + setScheduledDateTime(dateTime: LocalDateTime): void
+  + getDuration(): Duration
+  + setDuration(duration: Duration): void
+  + getStatus(): ActivityStatus
+  + setStatus(status: ActivityStatus): void
+  + getEndDateTime(): LocalDateTime
+  + conflictsWith(other: Schedulable): boolean
+  + canCancelWithoutPenalty(): boolean
+  + isPast(): boolean
+  + isOngoing(): boolean
+  + getScheduleDescription(): String
+}
+
+interface Bookable <<interface>> {
+  + getResourceId(): String
+  + getResourceName(): String
+  + isAvailableAt(dateTime: LocalDateTime, durationMinutes: int): boolean
+  + getBookedSlots(): List<TimeSlot>
+  + addBooking(slot: TimeSlot): boolean
+  + removeBooking(slot: TimeSlot): boolean
+  + isUnderMaintenance(): boolean
+  + getResourceDescription(): String
+}
+
+class "Bookable.TimeSlot" as TimeSlot <<record>> {
+  + start: LocalDateTime
+  + end: LocalDateTime
+  + bookingReference: String
+  + overlaps(other: TimeSlot): boolean
+  + getDurationMinutes(): long
+}
+
+Bookable +-- TimeSlot
+
+' ==================== ENUMS ====================
+enum ActivityStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+  --
+  + getDisplayName(): String
+  + getDescription(): String
+  + isFinalized(): boolean
+  + consumesHours(): boolean
+}
+
+enum ExamResult {
+  PENDING
+  PASS
+  FAIL
+  DISTINCTION
+  ABSENT
+  --
+  + getDisplayName(): String
+  + getDescription(): String
+  + isPassing(): boolean
+}
+
+enum Level {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  --
+  + getDisplayName(): String
+  + getOrder(): int
+  + isHigherThan(other: Level): boolean
+}
+
+enum PaymentStatus {
+  PENDING
+  PARTIAL
+  PAID
+  OVERDUE
+  REFUNDED
+  CANCELLED
+  --
+  + getDisplayName(): String
+  + getDescription(): String
+  + hasOutstandingBalance(): boolean
+}
+
+enum ServiceType {
+  MUSIC_PACKAGE
+  UNLIMITED_PACKAGE
+  GROUP_LESSON
+  INDIVIDUAL_LESSON
+  SINGLE_LESSON
+  INSTRUMENT_RENTAL
+  ROOM_BOOKING
+  --
+  + getDisplayName(): String
+  + getDescription(): String
+}
+
+' ==================== ABSTRACT CLASSES ====================
+abstract class Person {
+  # id: String
+  # firstName: String
+  # lastName: String
+  # address: String
+  # dateOfBirth: LocalDate
+  # phone: String
+  # email: String
+  # registrationDate: LocalDate
+  # active: boolean
+  --
+  + Person()
+  + Person(firstName, lastName, address, dateOfBirth, phone, email)
+  + Person(other: Person)
+  --
+  + getFullName(): String
+  + getAge(): int
+  + isMinor(): boolean
+  + getSummary(): String
+  {abstract} + getIdPrefix(): String
+  {abstract} + getRole(): String
+  {abstract} + getDetailedInfo(): String
+  {abstract} + copy(): Person
+}
+
+abstract class Service {
+  # id: String
+  # name: String
+  # description: String
+  # serviceType: ServiceType
+  # price: BigDecimal
+  # createdDate: LocalDate
+  # startDate: LocalDate
+  # endDate: LocalDate
+  # studentId: String
+  # paid: boolean
+  # active: boolean
+  --
+  + Service()
+  + Service(name, serviceType, price, studentId)
+  + Service(other: Service)
+  --
+  + isExpired(): boolean
+  + getRemainingDays(): long
+  {abstract} + getIdPrefix(): String
+  {abstract} + getDetailedInfo(): String
+  {abstract} + copy(): Service
+  {abstract} + isValid(): boolean
+}
+
+abstract class ScheduledActivity {
+  # id: String
+  # scheduledDateTime: LocalDateTime
+  # duration: Duration
+  # status: ActivityStatus
+  # roomId: String
+  # notes: String
+  # createdAt: LocalDateTime
+  # updatedAt: LocalDateTime
+  --
+  + ScheduledActivity()
+  + ScheduledActivity(scheduledDateTime, duration, roomId)
+  + ScheduledActivity(other: ScheduledActivity)
+  --
+  + complete(): void
+  + cancel(): boolean
+  + canReschedule(): boolean
+  + reschedule(newDateTime: LocalDateTime): boolean
+  + getDurationMinutes(): long
+  {abstract} + getIdPrefix(): String
+  {abstract} + getActivityType(): String
+  {abstract} + getDetailedInfo(): String
+  {abstract} + copy(): ScheduledActivity
+  {abstract} + consumesLessonHours(): boolean
+}
+
+' ==================== PERSON HIERARCHY ====================
+class Student {
+  - level: Level
+  - preferredInstruments: List<String>
+  - packageHours: Map<String, Integer>
+  - enrolledPackageIds: List<String>
+  - totalPurchasedHours: int
+  - totalConsumedHours: int
+  - parentGuardianName: String
+  - parentGuardianPhone: String
+  --
+  + Student()
+  + Student(firstName, lastName, address, dateOfBirth, phone, email, level)
+  + Student(other: Student)
+  --
+  + getRemainingHours(): int
+  + addPackageHours(packageId: String, hours: int): void
+  + consumeHours(hours: int): boolean
+  + addPreferredInstrument(instrument: String): void
+  + removePreferredInstrument(instrument: String): void
+  + hasAvailableHours(hours: int): boolean
+}
+
+class Teacher {
+  - specializations: List<String>
+  - qualifications: List<String>
+  - hourlyRate: BigDecimal
+  - availability: Map<DayOfWeek, List<TimeRange>>
+  - bookedSlots: List<TimeSlot>
+  - yearsOfExperience: int
+  - biography: String
+  --
+  + Teacher()
+  + Teacher(firstName, lastName, address, dateOfBirth, phone, email, hourlyRate, specializations)
+  + Teacher(other: Teacher)
+  --
+  + addSpecialization(instrument: String): void
+  + removeSpecialization(instrument: String): void
+  + canTeach(instrument: String): boolean
+  + addQualification(qualification: String): void
+  + setAvailability(day: DayOfWeek, start: LocalTime, end: LocalTime): void
+  + clearAvailability(day: DayOfWeek): void
+}
+
+class "Teacher.TimeRange" as TimeRange <<record>> {
+  + start: LocalTime
+  + end: LocalTime
+}
+
+Person <|-- Student
+Person <|-- Teacher
+Teacher +-- TimeRange
+Teacher ..|> Bookable
+
+' ==================== SERVICE HIERARCHY ====================
+class CoursePackage {
+  - totalHours: int
+  - usedHours: int
+  - instrument: String
+  - unlimited: boolean
+  - maxLessonsPerWeek: int
+  --
+  + CoursePackage()
+  + CoursePackage(name, price, studentId, totalHours, instrument, startDate, endDate)
+  + CoursePackage(name, price, studentId, instrument, startDate, endDate, maxLessonsPerWeek)
+  + CoursePackage(other: CoursePackage)
+  --
+  + getRemainingHours(): int
+  + useHours(hours: int): boolean
+  + refundHours(hours: int): void
+  + getUsagePercentage(): double
+  + getStatusDescription(): String
+}
+
+class IndividualLesson {
+  - instrument: String
+  - durationMinutes: int
+  - teacherId: String
+  - scheduledActivityId: String
+  - consumed: boolean
+  --
+  + IndividualLesson()
+  + IndividualLesson(name, price, studentId, instrument, durationMinutes, teacherId)
+  + IndividualLesson(other: IndividualLesson)
+  --
+  + markAsConsumed(): void
+  + linkToScheduledActivity(activityId: String): void
+}
+
+class InstrumentRental {
+  - instrumentId: String
+  - instrumentName: String
+  - dailyRate: BigDecimal
+  - depositAmount: BigDecimal
+  - depositPaid: boolean
+  - instrumentReturned: boolean
+  - returnDate: LocalDate
+  --
+  + InstrumentRental()
+  + InstrumentRental(studentId, instrumentId, instrumentName, dailyRate, depositAmount, startDate, endDate)
+  + InstrumentRental(other: InstrumentRental)
+  --
+  + markAsReturned(): void
+  + markDepositPaid(): void
+  + calculateLateFees(): BigDecimal
+  + isDepositRefundable(): boolean
+}
+
+Service <|-- CoursePackage
+Service <|-- IndividualLesson
+Service <|-- InstrumentRental
+Service ..|> Billable
+
+' ==================== SCHEDULING HIERARCHY ====================
+class Lesson {
+  - teacherId: String
+  - studentIds: List<String>
+  - instrument: String
+  - instrumentId: String
+  - isGroupLesson: boolean
+  - packageId: String
+  - serviceId: String
+  --
+  + Lesson()
+  + Lesson(scheduledDateTime, duration, roomId, teacherId, studentId, instrument)
+  + Lesson(scheduledDateTime, duration, roomId, teacherId, studentIds, instrument)
+  + Lesson(other: Lesson)
+  --
+  + addStudent(studentId: String): void
+  + removeStudent(studentId: String): boolean
+  + getStudentCount(): int
+  + hasStudent(studentId: String): boolean
+  + getHoursPerStudent(): int
+}
+
+class RoomBooking {
+  - studentId: String
+  - hourlyRate: BigDecimal
+  - purpose: String
+  - paid: boolean
+  --
+  + RoomBooking()
+  + RoomBooking(scheduledDateTime, duration, roomId, studentId, hourlyRate, purpose)
+  + RoomBooking(other: RoomBooking)
+  --
+  + calculateCost(): BigDecimal
+  + markAsPaid(): void
+}
+
+ScheduledActivity <|-- Lesson
+ScheduledActivity <|-- RoomBooking
+ScheduledActivity ..|> Schedulable
+
+' ==================== RESOURCE CLASSES ====================
+class Room {
+  - id: String
+  - name: String
+  - capacity: int
+  - equipment: List<String>
+  - suitableInstruments: List<String>
+  - available: boolean
+  - underMaintenance: boolean
+  - bookedSlots: List<TimeSlot>
+  --
+  + Room()
+  + Room(name, capacity, suitableInstruments)
+  + Room(other: Room)
+  --
+  + isSuitableFor(instrument: String): boolean
+  + addEquipment(item: String): void
+  + copy(): Room
+  + getDetailedInfo(): String
+}
+
+class Instrument {
+  - id: String
+  - name: String
+  - type: String
+  - brand: String
+  - serialNumber: String
+  - dailyRentalRate: BigDecimal
+  - depositRequired: BigDecimal
+  - available: boolean
+  - underMaintenance: boolean
+  - condition: String
+  - currentRenterId: String
+  - bookedSlots: List<TimeSlot>
+  --
+  + Instrument()
+  + Instrument(name, type, brand, dailyRentalRate, depositRequired)
+  + Instrument(other: Instrument)
+  --
+  + rentTo(studentId: String): boolean
+  + returnFromRental(): void
+  + isRented(): boolean
+  + copy(): Instrument
+  + getDetailedInfo(): String
+}
+
+Room ..|> Bookable
+Instrument ..|> Bookable
+
+' ==================== EXAM CLASSES ====================
+class Exam {
+  - id: String
+  - name: String
+  - instrument: String
+  - examDateTime: LocalDateTime
+  - durationMinutes: int
+  - maxCapacity: int
+  - roomId: String
+  - examinerId: String
+  - registrationFee: BigDecimal
+  - description: String
+  - registrations: Map<String, ExamRegistration>
+  - registrationOpen: boolean
+  - registrationDeadline: LocalDateTime
+  --
+  + Exam()
+  + Exam(name, instrument, examDateTime, maxCapacity, registrationFee)
+  + Exam(other: Exam)
+  --
+  + registerStudent(studentId: String): ExamRegistration
+  + cancelRegistration(studentId: String): boolean
+  + recordResult(studentId: String, result: ExamResult, score: Integer): boolean
+  + canRegister(): boolean
+  + getAvailableSpots(): int
+  + getRegisteredStudentIds(): List<String>
+  + getRegistration(studentId: String): ExamRegistration
+  + getAllRegistrations(): List<ExamRegistration>
+  + closeRegistration(): void
+  + openRegistration(): void
+  + getPassRate(): double
+  + copy(): Exam
+  + getDetailedInfo(): String
+}
+
+class "Exam.ExamRegistration" as ExamRegistration {
+  - registrationId: String
+  - examId: String
+  - studentId: String
+  - registrationDate: LocalDateTime
+  - fee: BigDecimal
+  - feePaid: boolean
+  - result: ExamResult
+  - score: Integer
+  --
+  + ExamRegistration()
+  + ExamRegistration(examId, studentId, fee)
+  + ExamRegistration(other: ExamRegistration)
+}
+
+Exam +-- ExamRegistration
+Exam --> ExamResult
+
+' ==================== BILLING CLASSES ====================
+class Invoice {
+  - id: String
+  - studentId: String
+  - issueDate: LocalDateTime
+  - dueDate: LocalDate
+  - status: PaymentStatus
+  - items: List<InvoiceItem>
+  - subtotal: BigDecimal
+  - taxRate: BigDecimal
+  - taxAmount: BigDecimal
+  - totalAmount: BigDecimal
+  - paidAmount: BigDecimal
+  - notes: String
+  --
+  + Invoice()
+  + Invoice(studentId: String)
+  + Invoice(other: Invoice)
+  --
+  + addBillableItem(billable: Billable): void
+  + addItem(item: InvoiceItem): void
+  + removeItem(itemId: String): boolean
+  + recordPayment(amount: BigDecimal): void
+  + getOutstandingBalance(): BigDecimal
+  + isOverdue(): boolean
+  + copy(): Invoice
+  + getDetailedInfo(): String
+}
+
+class "Invoice.InvoiceItem" as InvoiceItem {
+  - id: String
+  - referenceId: String
+  - description: String
+  - quantity: int
+  - unitPrice: BigDecimal
+  - total: BigDecimal
+  --
+  + InvoiceItem()
+  + InvoiceItem(referenceId, description, quantity, unitPrice)
+  + InvoiceItem(other: InvoiceItem)
+}
+
+class Payment {
+  - id: String
+  - studentId: String
+  - invoiceId: String
+  - amount: BigDecimal
+  - paymentDate: LocalDateTime
+  - paymentMethod: String
+  - status: PaymentStatus
+  - reference: String
+  - notes: String
+  --
+  + Payment()
+  + Payment(studentId, amount, paymentMethod)
+  + Payment(studentId, invoiceId, amount, paymentMethod)
+  + Payment(other: Payment)
+  --
+  + process(): void
+  + refund(): void
+  + cancel(): void
+  + copy(): Payment
+  + getDetailedInfo(): String
+}
+
+Invoice +-- InvoiceItem
+Invoice --> PaymentStatus
+Payment --> PaymentStatus
+Invoice ..> Billable : uses
+
+' ==================== SERVICE CLASSES ====================
+class SchedulingService {
+  - repository: DataRepository
+  --
+  + SchedulingService()
+  --
+  + scheduleLesson(teacherId, studentIds, roomId, instrument, dateTime, durationMinutes): Lesson
+  + scheduleIndividualLesson(teacherId, studentId, roomId, instrument, dateTime, durationMinutes): Lesson
+  + bookRoom(studentId, roomId, dateTime, durationMinutes, hourlyRate, purpose): RoomBooking
+  + checkSchedulingConflicts(teacherId, studentIds, roomId, dateTime, durationMinutes): List<String>
+  + cancelActivity(activityId: String): boolean
+  + completeActivity(activityId: String): void
+  + rescheduleActivity(activityId, newDateTime): boolean
+  + getUpcomingActivities(): List<ScheduledActivity>
+  + getTodayActivities(): List<ScheduledActivity>
+  + linkLessonToPackage(lessonId, packageId): void
+}
+
+class PaymentService {
+  - repository: DataRepository
+  --
+  + PaymentService()
+  --
+  + createInvoice(studentId: String): Invoice
+  + addBillableToInvoice(invoiceId, billable): void
+  + recordPayment(studentId, amount, paymentMethod): Payment
+  + recordInvoicePayment(invoiceId, amount, paymentMethod): Payment
+  + getTotalSpentByStudent(studentId: String): BigDecimal
+  + getStudentOutstandingBalance(studentId: String): BigDecimal
+  + getMonthlyRevenue(): Map<YearMonth, BigDecimal>
+  + getMonthRevenue(month: YearMonth): BigDecimal
+  + getStudentPaymentSummary(studentId: String): String
+  + getUnpaidInvoices(): List<Invoice>
+  + getOverdueInvoices(): List<Invoice>
+  + markServiceAsPaid(serviceId: String): void
+  + generateMonthlyReport(month: YearMonth): String
+  + refundPayment(paymentId: String): void
+  + getRevenueByServiceType(): Map<String, BigDecimal>
+}
+
+class ExamService {
+  - repository: DataRepository
+  --
+  + ExamService()
+  --
+  + createExam(name, instrument, examDateTime, maxCapacity, registrationFee): Exam
+  + registerStudentForExam(examId, studentId): ExamRegistration
+  + cancelExamRegistration(examId, studentId): boolean
+  + recordExamResult(examId, studentId, result, score): boolean
+  + getUpcomingExams(): List<Exam>
+  + getExamsWithOpenRegistration(): List<Exam>
+  + getExamsByInstrument(instrument: String): List<Exam>
+  + getStudentExamResults(studentId: String): Map<String, ExamRegistration>
+  + getStudentExamSummary(studentId: String): String
+  + closeExamRegistration(examId: String): void
+  + getExamPassRate(examId: String): double
+  + getExamStatistics(examId: String): String
+  + markExamFeePaid(examId, studentId): void
+}
+
+' ==================== REPOSITORY ====================
+class DataRepository {
+  - {static} instance: DataRepository
+  - students: Map<String, Student>
+  - teachers: Map<String, Teacher>
+  - services: Map<String, Service>
+  - rooms: Map<String, Room>
+  - instruments: Map<String, Instrument>
+  - scheduledActivities: Map<String, ScheduledActivity>
+  - exams: Map<String, Exam>
+  - invoices: Map<String, Invoice>
+  - payments: Map<String, Payment>
+  --
+  + {static} getInstance(): DataRepository
+  + reset(): void
+  --
+  ' Student operations
+  + addStudent(student: Student): void
+  + getStudent(id: String): Student
+  + getAllStudents(): List<Student>
+  + getActiveStudents(): List<Student>
+  + removeStudent(id: String): boolean
+  + findStudentByEmail(email: String): Student
+  --
+  ' Teacher operations
+  + addTeacher(teacher: Teacher): void
+  + getTeacher(id: String): Teacher
+  + getAllTeachers(): List<Teacher>
+  + getActiveTeachers(): List<Teacher>
+  + removeTeacher(id: String): boolean
+  + findTeachersByInstrument(instrument: String): List<Teacher>
+  --
+  ' Service operations
+  + addService(service: Service): void
+  + getService(id: String): Service
+  + getAllServices(): List<Service>
+  + removeService(id: String): boolean
+  + getAllCoursePackages(): List<CoursePackage>
+  + getStudentPackages(studentId: String): List<CoursePackage>
+  + getAllIndividualLessons(): List<IndividualLesson>
+  + getAllInstrumentRentals(): List<InstrumentRental>
+  --
+  ' Scheduling operations
+  + addScheduledActivity(activity: ScheduledActivity): void
+  + getScheduledActivity(id: String): ScheduledActivity
+  + getAllScheduledActivities(): List<ScheduledActivity>
+  + getAllLessons(): List<Lesson>
+  + getTeacherLessons(teacherId: String): List<Lesson>
+  + getStudentLessons(studentId: String): List<Lesson>
+  + getAllRoomBookings(): List<RoomBooking>
+  + getRoomActivities(roomId: String): List<ScheduledActivity>
+  --
+  ' Resource operations
+  + addRoom(room: Room): void
+  + getRoom(id: String): Room
+  + getAllRooms(): List<Room>
+  + getAvailableRooms(): List<Room>
+  + addInstrument(instrument: Instrument): void
+  + getInstrument(id: String): Instrument
+  + getAllInstruments(): List<Instrument>
+  + getAvailableInstruments(): List<Instrument>
+  --
+  ' Exam operations
+  + addExam(exam: Exam): void
+  + getExam(id: String): Exam
+  + getAllExams(): List<Exam>
+  + getUpcomingExams(): List<Exam>
+  + getExamsByInstrument(instrument: String): List<Exam>
+  --
+  ' Billing operations
+  + addInvoice(invoice: Invoice): void
+  + getInvoice(id: String): Invoice
+  + getAllInvoices(): List<Invoice>
+  + getStudentInvoices(studentId: String): List<Invoice>
+  + getUnpaidInvoices(): List<Invoice>
+  + addPayment(payment: Payment): void
+  + getPayment(id: String): Payment
+  + getAllPayments(): List<Payment>
+  + getStudentPayments(studentId: String): List<Payment>
+}
+
+' ==================== MAIN APP ====================
+class ConservatoireApp {
+  - {static} scanner: Scanner
+  - {static} repository: DataRepository
+  - {static} schedulingService: SchedulingService
+  - {static} paymentService: PaymentService
+  - {static} examService: ExamService
+  --
+  + {static} main(args: String[]): void
+}
+
+' ==================== RELATIONSHIPS ====================
+ConservatoireApp --> DataRepository : uses
+ConservatoireApp --> SchedulingService : uses
+ConservatoireApp --> PaymentService : uses
+ConservatoireApp --> ExamService : uses
+
+SchedulingService --> DataRepository : uses
+PaymentService --> DataRepository : uses
+ExamService --> DataRepository : uses
+
+DataRepository o-- Student
+DataRepository o-- Teacher
+DataRepository o-- Service
+DataRepository o-- Room
+DataRepository o-- Instrument
+DataRepository o-- ScheduledActivity
+DataRepository o-- Exam
+DataRepository o-- Invoice
+DataRepository o-- Payment
+
+SchedulingService ..> Lesson : creates
+SchedulingService ..> RoomBooking : creates
+SchedulingService ..> Schedulable : uses
+
+PaymentService ..> Invoice : creates
+PaymentService ..> Payment : creates
+
+ExamService ..> Exam : creates
+ExamService ..> ExamRegistration : creates
+
+Student --> Level
+Lesson --> ActivityStatus
+RoomBooking --> ActivityStatus
+ScheduledActivity --> ActivityStatus
+
+Service --> ServiceType
+CoursePackage --> ServiceType
+IndividualLesson --> ServiceType
+InstrumentRental --> ServiceType
+
+note top of Billable
+  Allows polymorphic billing 
+  for different service types
+end note
+
+note top of Schedulable
+  Enables conflict detection
+  across different activity types
+end note
+
+note top of Bookable
+  Manages resource availability
+  and booking slots
+end note
+
+note right of Person
+  Abstract base class for
+  Student and Teacher,
+  with copy constructor
+  for deep copying
+end note
+
+note right of Service
+  Abstract base class
+  implementing Billable
+  interface, supporting
+  multiple service types
+end note
+
+note right of ScheduledActivity
+  Abstract base class
+  implementing Schedulable
+  interface for lessons
+  and room bookings
+end note
+
+note bottom of DataRepository
+  Singleton pattern providing
+  centralized data management
+  with polymorphic collections
+end note
+
+@enduml
+

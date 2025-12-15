@@ -1,0 +1,276 @@
+@startuml
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam maxMessageSize 200
+
+title Sequence Diagram: Schedule a Lesson with Conflict Detection
+
+actor User
+participant "ConservatoireApp" as App
+participant "SchedulingService" as Scheduler
+participant "DataRepository" as Repo
+participant "Teacher" as Teacher
+participant "Student" as Student
+participant "Room" as Room
+participant "Lesson" as Lesson
+participant "Bookable.TimeSlot" as TimeSlot
+
+User -> App: Request to schedule lesson
+activate App
+
+App -> App: Collect input:\n- teacherId\n- studentIds\n- roomId\n- instrument\n- dateTime\n- duration
+
+App -> Scheduler: scheduleLesson(teacherId, studentIds,\nroomId, instrument, dateTime, duration)
+activate Scheduler
+
+== Validation Phase ==
+
+Scheduler -> Repo: getTeacher(teacherId)
+activate Repo
+Repo --> Scheduler: teacher
+deactivate Repo
+
+alt teacher is null or inactive
+    Scheduler --> App: throw IllegalArgumentException\n("Teacher not found or inactive")
+    App --> User: Error: Teacher not available
+end
+
+Scheduler -> Teacher: canTeach(instrument)
+activate Teacher
+Teacher --> Scheduler: boolean
+deactivate Teacher
+
+alt teacher cannot teach instrument
+    Scheduler --> App: throw IllegalArgumentException\n("Teacher cannot teach instrument")
+    App --> User: Error: Teacher doesn't teach this instrument
+end
+
+loop for each studentId in studentIds
+    Scheduler -> Repo: getStudent(studentId)
+    activate Repo
+    Repo --> Scheduler: student
+    deactivate Repo
+    
+    alt student is null or inactive
+        Scheduler --> App: throw IllegalArgumentException\n("Student not found or inactive")
+        App --> User: Error: Invalid student
+    end
+end
+
+Scheduler -> Repo: getRoom(roomId)
+activate Repo
+Repo --> Scheduler: room
+deactivate Repo
+
+alt room is null or unavailable
+    Scheduler --> App: throw IllegalArgumentException\n("Room not found or unavailable")
+    App --> User: Error: Room not available
+end
+
+== Conflict Detection Phase ==
+
+Scheduler -> Scheduler: checkSchedulingConflicts(teacherId,\nstudentIds, roomId, dateTime, duration)
+activate Scheduler
+
+note right of Scheduler
+  Creates temporary Schedulable 
+  object for conflict comparison
+end note
+
+Scheduler -> Repo: getTeacherLessons(teacherId)
+activate Repo
+Repo --> Scheduler: List<Lesson>
+deactivate Repo
+
+loop for each existing lesson
+    Scheduler -> Scheduler: tempSchedulable.conflictsWith(lesson)
+    
+    alt conflict detected
+        Scheduler -> Scheduler: Add to conflicts list:\n"Teacher has another lesson..."
+    end
+end
+
+loop for each studentId
+    Scheduler -> Repo: getStudentLessons(studentId)
+    activate Repo
+    Repo --> Scheduler: List<Lesson>
+    deactivate Repo
+    
+    loop for each student lesson
+        Scheduler -> Scheduler: tempSchedulable.conflictsWith(lesson)
+        
+        alt conflict detected
+            Scheduler -> Scheduler: Add to conflicts list:\n"Student has another lesson..."
+        end
+    end
+end
+
+Scheduler -> Repo: getRoomActivities(roomId)
+activate Repo
+Repo --> Scheduler: List<ScheduledActivity>
+deactivate Repo
+
+loop for each room activity
+    Scheduler -> Scheduler: tempSchedulable.conflictsWith(activity)
+    
+    alt conflict detected
+        Scheduler -> Scheduler: Add to conflicts list:\n"Room has another booking..."
+    end
+end
+
+Scheduler --> Scheduler: List<String> conflicts
+deactivate Scheduler
+
+alt conflicts not empty
+    Scheduler --> App: throw IllegalStateException\n("Scheduling conflicts detected")
+    App --> User: Error: Conflicts exist\n[list of conflicts]
+end
+
+== Resource Availability Check ==
+
+Scheduler -> Teacher: isAvailableAt(dateTime, duration)
+activate Teacher
+Teacher -> Teacher: Check day availability
+Teacher -> Teacher: Check time range
+Teacher -> Teacher: Check booked slots for overlaps
+Teacher --> Scheduler: boolean
+deactivate Teacher
+
+alt teacher not available
+    Scheduler --> App: throw IllegalStateException\n("Teacher not available at time")
+    App --> User: Error: Teacher unavailable at this time
+end
+
+Scheduler -> Room: isAvailableAt(dateTime, duration)
+activate Room
+Room -> Room: Check if under maintenance
+Room -> Room: Check booked slots for overlaps
+Room --> Scheduler: boolean
+deactivate Room
+
+alt room not available
+    Scheduler --> App: throw IllegalStateException\n("Room not available at time")
+    App --> User: Error: Room unavailable at this time
+end
+
+== Lesson Creation Phase ==
+
+create Lesson
+Scheduler -> Lesson: new Lesson(dateTime, duration,\nroomId, teacherId, studentIds, instrument)
+activate Lesson
+Lesson -> Lesson: Generate unique ID
+Lesson -> Lesson: Set status = SCHEDULED
+Lesson --> Scheduler: lesson
+deactivate Lesson
+
+== Resource Booking Phase ==
+
+create TimeSlot
+Scheduler -> TimeSlot: new TimeSlot(dateTime,\nendDateTime, lessonId)
+activate TimeSlot
+TimeSlot --> Scheduler: teacherSlot
+deactivate TimeSlot
+
+Scheduler -> Teacher: addBooking(teacherSlot)
+activate Teacher
+Teacher -> Teacher: Validate availability
+Teacher -> Teacher: Add to bookedSlots
+Teacher --> Scheduler: true
+deactivate Teacher
+
+create TimeSlot
+Scheduler -> TimeSlot: new TimeSlot(dateTime,\nendDateTime, lessonId)
+activate TimeSlot
+TimeSlot --> Scheduler: roomSlot
+deactivate TimeSlot
+
+Scheduler -> Room: addBooking(roomSlot)
+activate Room
+Room -> Room: Validate availability
+Room -> Room: Add to bookedSlots
+Room --> Scheduler: true
+deactivate Room
+
+== Persistence Phase ==
+
+Scheduler -> Repo: addScheduledActivity(lesson)
+activate Repo
+Repo -> Repo: Store in scheduledActivities map
+Repo --> Scheduler: void
+deactivate Repo
+
+Scheduler --> App: lesson
+deactivate Scheduler
+
+== Success Response ==
+
+App -> Lesson: getDetailedInfo()
+activate Lesson
+Lesson --> App: detailed information string
+deactivate Lesson
+
+App --> User: ✓ Lesson scheduled successfully!\n[lesson details]
+deactivate App
+
+== Alternative Flow: Lesson Completion ==
+
+note over User, TimeSlot
+  When lesson is completed later...
+end note
+
+User -> App: Mark lesson as completed
+activate App
+
+App -> Scheduler: completeActivity(lessonId)
+activate Scheduler
+
+Scheduler -> Repo: getScheduledActivity(lessonId)
+activate Repo
+Repo --> Scheduler: lesson
+deactivate Repo
+
+Scheduler -> Lesson: complete()
+activate Lesson
+Lesson -> Lesson: Set status = COMPLETED
+Lesson -> Lesson: Update updatedAt timestamp
+Lesson --> Scheduler: void
+deactivate Lesson
+
+Scheduler -> Scheduler: consumeLessonHours(lesson)
+activate Scheduler
+
+Scheduler -> Lesson: getStudentIds()
+activate Lesson
+Lesson --> Scheduler: List<String>
+deactivate Lesson
+
+Scheduler -> Lesson: getHoursPerStudent()
+activate Lesson
+Lesson --> Scheduler: hours
+deactivate Lesson
+
+loop for each studentId
+    Scheduler -> Repo: getStudent(studentId)
+    activate Repo
+    Repo --> Scheduler: student
+    deactivate Repo
+    
+    Scheduler -> Student: consumeHours(hours)
+    activate Student
+    Student -> Student: Update totalConsumedHours
+    Student -> Student: Deduct from packageHours (FIFO)
+    Student --> Scheduler: true
+    deactivate Student
+end
+
+Scheduler --> Scheduler: void
+deactivate Scheduler
+
+Scheduler --> App: void
+deactivate Scheduler
+
+App --> User: ✓ Lesson completed\nHours consumed from student packages
+deactivate App
+
+@enduml
+

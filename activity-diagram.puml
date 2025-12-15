@@ -1,0 +1,328 @@
+@startuml
+!theme plain
+skinparam activityBackgroundColor #F0F0F0
+skinparam activityBorderColor #333333
+skinparam activityDiamondBackgroundColor #FFE4B5
+skinparam activityDiamondBorderColor #8B4513
+skinparam activityStartColor #228B22
+skinparam activityEndColor #DC143C
+skinparam activityBarColor #4169E1
+
+title Activity Diagram: Student Exam Registration and Result Recording Process
+
+|#LightBlue|Student|
+start
+:Student selects to
+register for exam;
+
+|#LightGreen|System|
+:Display list of
+upcoming exams;
+
+:Show exam details:
+- Name
+- Instrument
+- Date & Time
+- Registration fee
+- Available spots;
+
+|#LightBlue|Student|
+:Select exam and
+provide student ID;
+
+|#LightGreen|System|
+:Retrieve exam details
+from repository;
+
+if (Exam found?) then (no)
+  |#LightCoral|Error Handling|
+  :Display error:
+  "Exam not found";
+  stop
+else (yes)
+  :Retrieve student details
+  from repository;
+  
+  if (Student found?) then (no)
+    |#LightCoral|Error Handling|
+    :Display error:
+    "Student not found";
+    stop
+  else (yes)
+  
+    |#LightGreen|System|
+    :Validate registration
+    eligibility;
+    
+    if (Registration open?) then (no)
+      |#LightCoral|Error Handling|
+      :Display error:
+      "Registration is closed";
+      stop
+    endif
+    
+    if (Deadline passed?) then (yes)
+      |#LightCoral|Error Handling|
+      :Display error:
+      "Deadline has passed";
+      stop
+    endif
+    
+    if (Capacity available?) then (no)
+      |#LightCoral|Error Handling|
+      :Display error:
+      "Exam at maximum capacity";
+      stop
+    endif
+    
+    if (Student already registered?) then (yes)
+      |#LightCoral|Error Handling|
+      :Display error:
+      "Already registered";
+      stop
+    endif
+    
+    |#LightGreen|System|
+    :All validations passed;
+    
+    :Create ExamRegistration:
+    - Generate registration ID
+    - Set registration date
+    - Set fee amount
+    - Set feePaid = false
+    - Set result = PENDING;
+    
+    :Add registration to
+    exam's registration map;
+    
+    :Display registration
+    confirmation with:
+    - Registration ID
+    - Fee amount
+    - Payment instructions;
+    
+    |#LightBlue|Student|
+    :Proceed to payment;
+    
+    |#LightGreen|System|
+    :Process exam fee payment;
+    
+    if (Payment successful?) then (yes)
+      :Mark registration
+      feePaid = true;
+      
+      :Send confirmation:
+      "Registration complete
+      You will receive exam
+      details before the date";
+    else (no)
+      :Mark feePaid = false;
+      
+      :Send reminder:
+      "Payment pending
+      Please complete payment
+      before exam date";
+    endif
+    
+  endif
+endif
+
+|#Lavender|Time Progression|
+note right
+  Days/weeks pass...
+  Exam date approaches
+end note
+
+:Exam day arrives;
+
+|#LightGreen|System|
+:Retrieve all registrations
+for the exam;
+
+fork
+  :Generate attendance sheet;
+fork again
+  :Send reminders to
+  registered students;
+fork again
+  :Prepare exam materials;
+end fork
+
+|#LightYellow|Examiner|
+:Conduct exam;
+
+:Evaluate student
+performances;
+
+partition "Result Recording Phase" {
+  
+  |#LightYellow|Examiner|
+  :For each registered student,
+  enter result and score;
+  
+  |#LightGreen|System|
+  :Retrieve exam by ID;
+  
+  if (Exam exists?) then (yes)
+    :Retrieve student's
+    registration;
+    
+    if (Student registered?) then (yes)
+      
+      :Validate score input;
+      
+      if (Score in range 0-100?) then (yes)
+        
+        :Determine result based
+        on performance:
+        - DISTINCTION (score ≥ 90)
+        - PASS (score ≥ 60)
+        - FAIL (score < 60)
+        - ABSENT (if applicable);
+        
+        :Update registration:
+        - Set result
+        - Set score
+        - Update timestamp;
+        
+        :Calculate exam statistics:
+        - Pass rate
+        - Average score
+        - Distribution;
+        
+        :Store updated exam
+        in repository;
+        
+      else (no)
+        |#LightCoral|Error Handling|
+        :Display error:
+        "Invalid score range";
+      endif
+      
+    else (no)
+      |#LightCoral|Error Handling|
+      :Display error:
+      "Student not registered";
+    endif
+    
+  else (no)
+    |#LightCoral|Error Handling|
+    :Display error:
+    "Exam not found";
+  endif
+}
+
+|#LightGreen|System|
+:Generate exam report:
+- Total registered
+- Pass rate
+- Average score
+- Result distribution;
+
+fork
+  |#LightYellow|Examiner|
+  :Review exam statistics
+  and results;
+fork again
+  |#LightGreen|System|
+  :Send result notifications
+  to students;
+  
+  |#LightBlue|Student|
+  :Receive exam result
+  notification;
+  
+  if (Result is PASS or DISTINCTION?) then (yes)
+    :Celebrate success!;
+    
+    :Update student profile
+    with achievement;
+    
+    if (Result is DISTINCTION?) then (yes)
+      :Award certificate
+      of excellence;
+    endif
+    
+  elseif (Result is FAIL?) then (yes)
+    :Provide feedback and
+    improvement suggestions;
+    
+    :Offer option to
+    retake exam;
+    
+  else (ABSENT)
+    :Check if valid reason;
+    
+    if (Valid excuse?) then (yes)
+      :Allow rescheduling
+      without extra fee;
+    else (no)
+      :Forfeit registration fee;
+    endif
+  endif
+fork again
+  |#LightGreen|System|
+  :Update student
+  exam history;
+  
+  :Calculate student's
+  overall statistics:
+  - Total exams taken
+  - Pass rate
+  - Average score;
+  
+  :Archive exam results
+  in permanent record;
+end fork
+
+|#LightBlue|Student|
+:View exam history
+and statistics;
+
+|#LightGreen|System|
+if (All students processed?) then (yes)
+  :Close exam registration
+  permanently;
+  
+  :Archive exam data;
+  
+  :Generate final report;
+  
+  stop
+else (no)
+  :Continue processing
+  remaining results;
+  
+  :Send reminders to
+  students who haven't
+  received results;
+  
+  stop
+endif
+
+note right
+  This activity diagram shows:
+  1. Registration validation with multiple
+     business rule checks
+  2. Payment processing
+  3. Exam result recording
+  4. Result distribution
+  5. Post-exam activities
+  
+  Key Decision Points:
+  - Eligibility validation
+  - Capacity checking
+  - Duplicate registration prevention
+  - Score validation
+  - Result categorization
+  
+  Demonstrates:
+  - Business rule enforcement
+  - Error handling
+  - Parallel activities (fork/join)
+  - Multiple swimlanes (actors)
+  - State transitions
+end note
+
+@enduml
+

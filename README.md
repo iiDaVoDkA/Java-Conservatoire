@@ -5,6 +5,7 @@ A comprehensive Java application for managing a private music school's operation
 ## 📋 Table of Contents
 
 - [Project Overview](#-project-overview)
+- [GUI Application](#-gui-application-new)
 - [Features](#-features)
 - [Architecture](#-architecture)
 - [OOP Design Patterns](#-oop-design-patterns)
@@ -26,6 +27,56 @@ A comprehensive Java application for managing a private music school's operation
 - **Resources** - Room management and instrument rentals
 - **Payments** - Invoicing, payment tracking, financial reports
 - **Examinations** - Official exam registration, capacity management, results
+
+---
+
+## 🖥️ GUI Application (NEW!)
+
+**Conservatoire Virtuel** now includes a modern JavaFX-based graphical user interface!
+
+### Features
+- 📊 **Dashboard** - Real-time statistics and system overview
+- 👨‍🎓 **Student Management** - Add, edit, view, and delete students
+- 👨‍🏫 **Teacher Management** - Manage teachers and their specializations
+- 📦 **Services** - Create course packages, lessons, and instrument rentals
+- 📅 **Scheduling** - Schedule lessons and book practice rooms
+- 📝 **Exams** - Create exams, register students, and record results
+- 💰 **Payments** - Record payments and generate invoices
+
+### Quick Start (GUI)
+
+**Windows:**
+```bash
+run-gui.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x run-gui.sh
+./run-gui.sh
+```
+
+**Or using Maven directly:**
+```bash
+mvn clean javafx:run
+```
+
+For detailed GUI documentation, see [GUI_README.md](GUI_README.md)
+
+### Console Application
+
+The original console-based application is still available:
+
+**Windows:**
+```bash
+run-console.bat
+```
+
+**Linux/Mac:**
+```bash
+chmod +x run-console.sh
+./run-console.sh
+```
 
 ---
 
@@ -407,21 +458,47 @@ public List<String> getPreferredInstruments() {
 - Java JDK 17 or higher
 - Maven 3.6 or higher
 
-### Build & Run
+### Running the GUI Application (Recommended)
+
+**Option 1: Using launcher scripts**
+```bash
+# Windows
+run-gui.bat
+
+# Linux/Mac
+chmod +x run-gui.sh
+./run-gui.sh
+```
+
+**Option 2: Using Maven**
+```bash
+mvn clean javafx:run
+```
+
+### Running the Console Application
+
+**Option 1: Using launcher scripts**
+```bash
+# Windows
+run-console.bat
+
+# Linux/Mac
+chmod +x run-console.sh
+./run-console.sh
+```
+
+**Option 2: Using Maven**
+```bash
+mvn clean compile exec:java -Dexec.mainClass="com.music.school.ConservatoireApp"
+```
+
+### Build Package
 
 ```bash
-# Navigate to project directory
-cd java-project
+# Build JAR file
+mvn clean package
 
-# Compile
-mvn clean compile
-
-# Run the application
-mvn exec:java -Dexec.mainClass="com.music.school.ConservatoireApp"
-
-# Or package and run
-mvn package
-java -jar target/conservatoire-virtuel-1.0.0.jar
+# The JAR will be created in target/conservatoire-virtuel-1.0.0.jar
 ```
 
 ### Running Tests (if available)
@@ -492,53 +569,70 @@ The test data includes:
 java-project/
 ├── pom.xml                           # Maven configuration
 ├── README.md                         # This file
+├── GUI_README.md                     # GUI documentation
+├── run-gui.bat                       # Windows GUI launcher
+├── run-gui.sh                        # Linux/Mac GUI launcher
+├── run-console.bat                   # Windows console launcher
+├── run-console.sh                    # Linux/Mac console launcher
 └── src/
     └── main/
-        └── java/
-            └── com/
-                └── music/
-                    └── school/
-                        ├── ConservatoireApp.java      # Main application
-                        ├── enums/
-                        │   ├── Level.java
-                        │   ├── ActivityStatus.java
-                        │   ├── PaymentStatus.java
-                        │   ├── ServiceType.java
-                        │   └── ExamResult.java
-                        ├── interfaces/
-                        │   ├── Schedulable.java
-                        │   ├── Billable.java
-                        │   └── Bookable.java
-                        ├── model/
-                        │   ├── person/
-                        │   │   ├── Person.java        # Abstract
-                        │   │   ├── Student.java
-                        │   │   └── Teacher.java
-                        │   ├── service/
-                        │   │   ├── Service.java       # Abstract
-                        │   │   ├── CoursePackage.java
-                        │   │   ├── IndividualLesson.java
-                        │   │   └── InstrumentRental.java
-                        │   ├── scheduling/
-                        │   │   ├── ScheduledActivity.java  # Abstract
-                        │   │   ├── Lesson.java
-                        │   │   └── RoomBooking.java
-                        │   ├── resource/
-                        │   │   ├── Room.java
-                        │   │   └── Instrument.java
-                        │   ├── exam/
-                        │   │   └── Exam.java
-                        │   └── billing/
-                        │       ├── Invoice.java
-                        │       └── Payment.java
-                        ├── service/
-                        │   ├── SchedulingService.java
-                        │   ├── PaymentService.java
-                        │   └── ExamService.java
-                        ├── repository/
-                        │   └── DataRepository.java
-                        └── data/
-                            └── TestDataInitializer.java
+        ├── java/
+        │   └── com/
+        │       └── music/
+        │           └── school/
+        │               ├── ConservatoireApp.java      # Console application
+        │               ├── gui/
+        │               │   ├── ConservatoireGUI.java  # GUI application
+        │               │   └── panels/
+        │               │       ├── DashboardPanel.java
+        │               │       ├── StudentsPanel.java
+        │               │       ├── TeachersPanel.java
+        │               │       ├── ServicesPanel.java
+        │               │       ├── SchedulingPanel.java
+        │               │       ├── ExamsPanel.java
+        │               │       └── PaymentsPanel.java
+        │               ├── enums/
+        │               │   ├── Level.java
+        │               │   ├── ActivityStatus.java
+        │               │   ├── PaymentStatus.java
+        │               │   ├── ServiceType.java
+        │               │   └── ExamResult.java
+        │               ├── interfaces/
+        │               │   ├── Schedulable.java
+        │               │   ├── Billable.java
+        │               │   └── Bookable.java
+        │               ├── model/
+        │               │   ├── person/
+        │               │   │   ├── Person.java        # Abstract
+        │               │   │   ├── Student.java
+        │               │   │   └── Teacher.java
+        │               │   ├── service/
+        │               │   │   ├── Service.java       # Abstract
+        │               │   │   ├── CoursePackage.java
+        │               │   │   ├── IndividualLesson.java
+        │               │   │   └── InstrumentRental.java
+        │               │   ├── scheduling/
+        │               │   │   ├── ScheduledActivity.java  # Abstract
+        │               │   │   ├── Lesson.java
+        │               │   │   └── RoomBooking.java
+        │               │   ├── resource/
+        │               │   │   ├── Room.java
+        │               │   │   └── Instrument.java
+        │               │   ├── exam/
+        │               │   │   └── Exam.java
+        │               │   └── billing/
+        │               │       ├── Invoice.java
+        │               │       └── Payment.java
+        │               ├── service/
+        │               │   ├── SchedulingService.java
+        │               │   ├── PaymentService.java
+        │               │   └── ExamService.java
+        │               ├── repository/
+        │               │   └── DataRepository.java
+        │               └── data/
+        │                   └── TestDataInitializer.java
+        └── resources/
+            └── styles.css                # GUI styling
 ```
 
 ---

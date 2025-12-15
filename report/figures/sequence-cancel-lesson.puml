@@ -79,7 +79,7 @@ end
 SS --> User : boolean (withoutPenalty)
 deactivate SS
 
-note bottom of SA
+note right
     <b>Business Rule:</b>
     If a lesson is cancelled less than
     24 hours before, it counts as consumed.
